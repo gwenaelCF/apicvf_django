@@ -1,0 +1,3 @@
+# Your crontab fragment here
+# Example:
+# 0 2 * * * {{MFSERV_HOME}}/bin/cronwrap.sh -l -e -- plugin_wrapper apicvf_django your_command.sh >>{{MFMODULE_RUNTIME_HOME}}/log/your_command.log 2>&1

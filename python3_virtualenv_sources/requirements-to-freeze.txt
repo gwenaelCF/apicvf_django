@@ -1,0 +1,7 @@
+
+# python3 requirements.txt file
+# see https://pip.readthedocs.io/en/1.1/requirements.html
+django>=2.2,<2.3
+psycopg2
+django-extensions
+pydotplus

@@ -1,0 +1,61 @@
+#!/bin/bash
+
+set -eu
+
+rm -Rf "apicvf_django"
+rm -Rf hello
+rm -f manage.py
+
+django-admin startproject apicvf_django .
+django-admin startapp hello
+cat >hello/views.py <<EOF
+from django.http import HttpResponse
+
+
+def index(request):
+    return HttpResponse("Hello World from django app")
+EOF
+cat >hello/urls.py <<EOF
+from django.urls import path
+
+from . import views
+
+urlpatterns = [
+    path('', views.index, name='index'),
+]
+EOF
+
+echo "" >>apicvf_django/urls.py
+echo "# ADDED BY METWORK/MFSERV/DJANGO PLUGIN TEMPLATE" >>apicvf_django/urls.py
+echo "# FOR CONFIGURING hello app" >>apicvf_django/urls.py
+echo "from django.conf.urls import include, url" >>apicvf_django/urls.py
+echo "urlpatterns.append(url(r'^hello/', include('hello.urls')))" >>apicvf_django/urls.py
+echo "urlpatterns.append(path('', include('hello.urls')))" >>apicvf_django/urls.py
+
+echo "" >>apicvf_django/urls.py
+echo "# ADDED BY METWORK/MFSERV/DJANGO PLUGIN TEMPLATE" >>apicvf_django/urls.py
+echo "# TO PROVIDE PREFIX BASED ROUTING" >>apicvf_django/urls.py
+echo 'PREFIXES = [r"^apicvf_django/"]' >>apicvf_django/urls.py
+echo "urlpatterns = [url(x, include(urlpatterns)) for x in PREFIXES]" >>apicvf_django/urls.py
+
+cat >>apicvf_django/settings.py <<EOF
+
+# ADDED BY METWORK/MFSERV/DJANGO PLUGIN TEMPLATE
+# TO PROVIDE PREFIX BASED ROUTING
+STATIC_URL = '/apicvf_django/apicvf_django/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, "apicvf_django/static")
+
+# ADDED BY METWORK/MFSERV/DJANGO PLUGIN TEMPLATE
+# TO PROVIDE DEBUG FEATURE
+DEBUG = (os.environ.get('MFSERV_CURRENT_PLUGIN_DEBUG', '0') == '1')
+import mflog
+if DEBUG:
+    mflog.set_config(minimal_level="DEBUG")
+else:
+    mflog.set_config()
+
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
+EOF
+
+python manage.py migrate
+python manage.py collectstatic --no-input

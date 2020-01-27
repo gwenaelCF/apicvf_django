@@ -1,0 +1,84 @@
+starting at : 20 Jan 2020 15:05:56
+param : abo=400000, grainParAbo=400, proba_cumulative[0,-1,1,2]=[9985, 9990, 9999, 10000], cycles=5
+cycle 1 - injection d'un cdp
+génération cdp
+fait en 0.06778597831726074
+traitement
+début applatissement
+dico des etats grains fait en 8.828657865524292
+applatissement fait en 0.7800514698028564
+nombre d'abo en alerte par seuil : 
+{-1: 5361, 1: 13329, 2: 1593}
+mise à jour base
+création dico des seuils de grains
+update (état)grains en base
+fait en 14.537151336669922
+
+durée du cyle 1: 24.22979235649109
+
+cycle 2 - injection d'un cdp
+génération cdp
+fait en 0.13821172714233398
+traitement
+début applatissement
+dico des etats grains fait en 11.20607590675354
+applatissement fait en 0.32150816917419434
+nombre d'abo en alerte par seuil : 
+{-1: 5739, 1: 13281, 2: 1596}
+mise à jour base
+création dico des seuils de grains
+update (état)grains en base
+fait en 23.24700927734375
+
+durée du cyle 2: 35.52130746841431
+
+cycle 3 - injection d'un cdp
+génération cdp
+fait en 0.06059575080871582
+traitement
+début applatissement
+dico des etats grains fait en 11.409213066101074
+applatissement fait en 1.2067251205444336
+nombre d'abo en alerte par seuil : 
+{-1: 5735, 1: 12193, 2: 1197}
+mise à jour base
+création dico des seuils de grains
+update (état)grains en base
+fait en 22.233661890029907
+
+durée du cyle 3: 36.03240251541138
+
+cycle 4 - injection d'un cdp
+génération cdp
+fait en 0.07098627090454102
+traitement
+début applatissement
+dico des etats grains fait en 14.575708627700806
+applatissement fait en 1.136763334274292
+nombre d'abo en alerte par seuil : 
+{-1: 8744, 1: 16805, 2: 800}
+mise à jour base
+création dico des seuils de grains
+update (état)grains en base
+fait en 28.031770944595337
+
+durée du cyle 4: 44.43858361244202
+
+cycle 5 - injection d'un cdp
+génération cdp
+fait en 0.06239485740661621
+traitement
+début applatissement
+dico des etats grains fait en 15.810560941696167
+applatissement fait en 0.4058113098144531
+nombre d'abo en alerte par seuil : 
+{-1: 7988, 1: 14833, 2: 1598}
+mise à jour base
+création dico des seuils de grains
+update (état)grains en base
+fait en 29.224806308746338
+
+durée du cyle 5: 46.110658168792725
+
+durée totale : 186.3327441215515 | durée par cycle : 37.266548824310306
+end at : 20 Jan 2020 15:09:02

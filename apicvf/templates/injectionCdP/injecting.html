@@ -1,0 +1,25 @@
+{% extends 'injectionCdP/base.html' %}
+{% block content %}
+
+<div class="container-fluid">
+
+    <table class="table table-bordered text-center">
+        <thead class="thead-light">
+            <tr>
+                <th scope="col">timestamp</th>
+                <th scope="col">nbr de communes<br/>avec seuil != 0</th>
+                <th scope="col">dont<br/>communes avec avertissement</th>
+                <th scope="col">abonnements avertis<br/>(commune ou dep déclencheur)</th>
+                <th scope="col">temps de calcul</th>
+                <th scope="col">temps cumulé</th>
+            </tr>
+        </thead>
+       <tbody id="fillMyBody">
+            !!!DATA HERE!!!   
+        </tbody>
+    </table>
+
+</div>
+
+
+{% endblock %}
