@@ -24,7 +24,7 @@ class Produit(models.Model):
 
 class Granularite(models.Model):
     """ classe mère reprenant les info INSEE """
-    insee = models.CharField(max_length=2, unique=True)
+    insee = models.CharField(max_length=6, unique=True)
     tncc = models.SmallIntegerField(null=True)
     ncc = models.CharField(max_length=200, null=True)
     nccenr = models.CharField(max_length=200, null=True)

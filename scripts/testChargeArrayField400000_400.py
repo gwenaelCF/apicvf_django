@@ -85,7 +85,7 @@ def modifSeuilUnit(obj, newT0):
     #obj.save()
     return obj
 
-#l
+#
 #fonctions d'injection de cdp simplifiées pour grains
 def randomChoice(insee_list, weights=[9985, 9990, 9999, 10000]):
     return random.choices([0,-1,1,2], cum_weights= weights, k=insee_list)

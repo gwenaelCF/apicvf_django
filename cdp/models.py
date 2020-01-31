@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.postgres.fields import JSONField
+from django.core.files.uploadedfile import InMemoryUploadedFile
 
 #import gzip
 import datetime
@@ -45,16 +46,18 @@ class CdpApic(Cdp):
     batch = models.ForeignKey(BatchCdp, to_field="name", on_delete=models.SET_NULL, null=True)
 
     @classmethod
-    def create(cls, fichier_csv, batch=None):
-        with open(fichier_csv, 'r') as f:
-            reader = csv.Reader(f)
-            header = reader.__next__()
-            dt_str = header.decode().split(';')[0]
-            dt = datetime.datetime.strptime(dt_str,"%Y%m%d%H%M")
-            grains = {}
-            for row in reader :
-                grains[row[0]]=row[3]
-            return cls(name=name, dt=dt,grains=grains)
+    def create(cls, fichier_csv_uploaded, batch=None):
+
+        name = 'un_nom'
+        #data = fichier_csv.read()
+        # reader = csv.reader(fichier_csv)
+        # header = reader.__next__()
+        # dt_str = header.decode().split(';')[0]
+        # dt = datetime.datetime.strptime(dt_str,"%Y%m%d%H%M")
+        # grains = {}
+        # for row in reader :
+        #     grains[row[0]]=row[3]
+        return cls(name=name)
 
 
 # class HistoriCdp(models.Model):
