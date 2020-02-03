@@ -82,9 +82,9 @@ if DEBUG and LOCAL_VM :
     DATABASES = {
         'default': {       
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'plugin_apicvf',
-            'USER': 'plugin_apicvf',
-            'PASSWORD': 'plugin_apicvf',
+            'NAME': 'plugin_apicvf_base',
+            'USER': 'plugin_apicvf_base',
+            'PASSWORD': 'plugin_apicvf_base',
             'HOST': 'localhost',
             'PORT': '7432',
         }
@@ -94,9 +94,9 @@ else :
     DATABASES = {
         'default': {       
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'plugin_apicvf',
-            'USER': 'plugin_apicvf',
-            'PASSWORD': 'plugin_apicvf',
+            'NAME': 'plugin_apicvf_base',
+            'USER': 'plugin_apicvf_base',
+            'PASSWORD': 'plugin_apicvf_base',
             'HOST': 'apicb31-sidev',
             'PORT': '7432',
         }
