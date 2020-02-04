@@ -12,7 +12,7 @@ def seuil_compar(x):
 
 def findmax(l):
     """ max seuil liste sans 0 """
-    return max(set(l), key=seuilCompar)
+    return max(set(l), key=seuil_compar)
 
 
 def findmax_z(l):

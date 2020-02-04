@@ -74,18 +74,23 @@ class Etat_dept_produit(Etat):
 class Etat_grain_produit(Etat):
     grain = models.ForeignKey(Grain, on_delete=models.PROTECT)
 
-class Souscription(Etat):
-    """ abonnement 'conglomérat' sur les sous-ensembles d'un produit """
-    derniere_alerte = models.DateTimeField(null=True)
-    derniere_alerte_ensemble = ArrayField(models.IntegerField(blank=True),blank=True, null=True)
-    derniere_alerte_seuil = models.SmallIntegerField(default=0)
+class Etat_produit(Etat):
+    """ abonnement à l'ensemble des grains d'un produit (applât) """
+    pass
 
-    @classmethod
-    def is_alert():
-        """ FOR ETAT_DEPT_PRODUIT WHERE PRODUIT==PRODUIT:
-        IF ETAT_DEPT_PRODUIT.alert==ALERT:
-            souscription.alert = MAX(souscription.alert, ETAT_DEPT_PRODUIT) """
-        pass
+# abandonné, pas de besoin
+# class Souscription(Etat):
+#     """ abonnement 'conglomérat' sur les sous-ensembles d'un produit """
+#     derniere_alerte = models.DateTimeField(null=True)
+#     derniere_alerte_ensemble = ArrayField(models.IntegerField(blank=True),blank=True, null=True)
+#     derniere_alerte_seuil = models.SmallIntegerField(default=0)
+
+#     @classmethod
+#     def is_alert():
+#         """ FOR ETAT_DEPT_PRODUIT WHERE PRODUIT==PRODUIT:
+#         IF ETAT_DEPT_PRODUIT.alert==ALERT:
+#             souscription.alert = MAX(souscription.alert, ETAT_DEPT_PRODUIT) """
+#        pass
 
 class Abonnement(models.Model):
     """ abonnements """
@@ -106,7 +111,7 @@ class Abonnement(models.Model):
     derniere_alerte_seuil = models.SmallIntegerField(default=0)
     
     #type de compte (applat/conglo), si True, pas d'emprise
-    souscription = models.BooleanField(default=False)
+    souscription = models.ForeignKey(Etat_produit, on_delete=models.PROTECT, null=True)
 
   
 # class Avertissement(models.Model):

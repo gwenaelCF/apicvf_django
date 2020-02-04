@@ -2,7 +2,6 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.uploadedfile import InMemoryUploadedFile
-
 import cdp.models
 # Create your views here.
 

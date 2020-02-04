@@ -25,6 +25,9 @@ SECRET_KEY = '7x51b)i%*qy)tb^ckb^nmk^39x^gq-wp$2nq+%40yj0)4srb!='
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# get the db according to the architecture the plugin's on
+LOCAL_VM = True
+
 ALLOWED_HOSTS = []
 
 
@@ -72,16 +75,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'apicvf_django.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
-if DEBUG:
+if DEBUG and LOCAL_VM :
     DATABASES = {
         'default': {       
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'plugin_apicvf',
-            'USER': 'plugin_apicvf',
-            'PASSWORD': 'plugin_apicvf',
+            'NAME': 'plugin_apicvf_base',
+            'USER': 'metwork',
+            'PASSWORD': 'metwork',
             'HOST': 'localhost',
             'PORT': '7432',
         }
@@ -91,15 +93,15 @@ else :
     DATABASES = {
         'default': {       
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'plugin_apicvf',
-            'USER': 'plugin_apicvf',
-            'PASSWORD': 'plugin_apicvf',
+            'NAME': 'plugin_apicvf_base',
+            'USER': 'metwork',
+            'PASSWORD': 'metwork',
             'HOST': 'apicb31-sidev',
             'PORT': '7432',
         }
     }
-    
 
+#TEST_RUNNER = 'apicvf.test_runner.CustomRunner'
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 
