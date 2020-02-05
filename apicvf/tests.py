@@ -24,9 +24,11 @@ class VitesseTraitementTestCase(TestCase):
         return random.choices(range(self.nbAbo),k=self.grainParAbo)
 
     def insert_abo(self):
-        etatgrain_qs = apicvf.models.Etat_grain_produit.objects.filter(
-            produit__name__exact='AFR')
-        etatgrain_qs.update(abo_array=self.get_random_abo())
+        list_etat = apicvf.models.Etat_grain_produit.objects.filter(
+            produit__name__exact='AFR').only('id')
+        for etat in list_etat:
+            etat.abo_array=self.get_random_abo()
+        apicvf.models.Etat_grain_produit.objects.bulk_update(list_etat,['abo_array'],batch_size=5000)
     
     def setUp(self):
         with Timer() as t:
@@ -41,7 +43,8 @@ class VitesseTraitementTestCase(TestCase):
         with Timer() as t:
             randList = self.randomChoice(len(insee_list), self.weights)
             fakeCdp = {insee_list[i]:randList[i] for i in range(len(insee_list))}    
-        print(f'fait en {t.interval}')
+        print(f'fait en {t.interval}'+
+                f'pour une longueur de {len(fakeCdp.keys())}')
         return fakeCdp
 
     def applatissement(self, fakeCdp):
@@ -55,7 +58,9 @@ class VitesseTraitementTestCase(TestCase):
                 etat['abo_array'],etat['t_2'], etat['t_1'], etat['t0']) 
                                 for etat in etat_qs
                             }
-        print(f'dico des grains:[abos] fait en {t.interval} pour {len(dico_etat_abo.keys())} clés')
+        print(
+            f'dico des grains:[abos] fait en {t.interval}'+
+            f' pour {len(dico_etat_abo.keys())} clés')
         with Timer() as t:
             dico_abo_etat0 = {}
             for insee, newt0 in fakeCdp.items():
@@ -96,10 +101,11 @@ class VitesseTraitementTestCase(TestCase):
         # grain_range = injectionCdP.models.Grain.objects.aggregate(Max('id'),Min('id'))
         # grainsQl = injectionCdP.models.Grain.objects.all()
         # nbGrains = grainsQl.count()
+        insee_list = list(apicvf.models.Etat_grain_produit.objects.filter(
+            produit__name__exact='AFR').values_list('grain__insee', flat=True))
         with Timer() as t:
             self.insert_abo()
         print(f'mise en place des abos par grain en {t.interval}')
-        insee_list = list(apicvf.models.Etat_grain_produit.objects.filter(produit__name__exact='AFR').values_list('grain__insee', flat=True))
         time = 0
         for j in range(self.cycles):
             with Timer() as t:
