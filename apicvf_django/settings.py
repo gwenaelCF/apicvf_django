@@ -25,6 +25,10 @@ SECRET_KEY = '7x51b)i%*qy)tb^ckb^nmk^39x^gq-wp$2nq+%40yj0)4srb!='
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# Get the db according to the architecture the plugin's on
+LOCAL_VM = False
+
+
 ALLOWED_HOSTS = []
 
 
@@ -153,3 +157,6 @@ else:
     mflog.set_config()
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
+
+if not LOCAL_VM:
+    ALLOWED_HOSTS.append('apicf31-sidev')
