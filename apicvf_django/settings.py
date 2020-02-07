@@ -26,7 +26,7 @@ SECRET_KEY = '7x51b)i%*qy)tb^ckb^nmk^39x^gq-wp$2nq+%40yj0)4srb!='
 DEBUG = True
 
 # Get the db according to the architecture the plugin's on
-LOCAL_VM = False
+LOCAL_VM = True
 
 
 ALLOWED_HOSTS = []

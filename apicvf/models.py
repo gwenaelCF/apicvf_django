@@ -18,9 +18,24 @@ PRODUITS = [('AFR','APIC METROPOLE'),
             ('ANC','APIC NOUVELLE CALEDONIE'),
             ]
 
+ORIGIN_DICO = {
+                    'fr':['AFR', 'VFR'],
+                    'ga':['AAG'],
+                    'ma':['AAG'],
+                    're':['AOI'],
+                    'nc':['ANC']
+                    }
+
+PRODUITS_DICO = {
+                    'AFR':['fr'],
+                    'VFR':['fr'],
+                    'AAG':['ga','ma'],
+                    'AOI':['re'],
+                    'ANC':['nc']
+                    }
 
 class Produit(models.Model):
-    name = models.CharField(max_length=10, choices=PRODUITS, default="AFR")
+    name = models.CharField(max_length=10, choices=PRODUITS, default="AFR", unique=True)
 
 class Granularite(models.Model):
     """ classe mère reprenant les info INSEE """
@@ -65,8 +80,8 @@ class Etat_reg_produit(Etat):
     # non-implentée pour le moment
     reg = models.ForeignKey(Region, on_delete=models.PROTECT)
 
-    class Meta :
-        abstract = True
+    # class Meta :
+    #     abstract = True
 
 class Etat_dept_produit(Etat):
     dept = models.ForeignKey(Dept, on_delete=models.PROTECT)
