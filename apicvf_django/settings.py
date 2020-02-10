@@ -35,8 +35,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'apicvf',
-    'cdp',
+    'procedere',
+    'epistola',
     'django_extensions',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -83,7 +83,7 @@ if DEBUG and LOCAL_VM :
     DATABASES = {
         'default': {       
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'plugin_apicvf',
+            'NAME': 'plugin_apicvf_base',
             'USER': 'metwork',
             'PASSWORD': 'metwork',
             'HOST': 'localhost',
@@ -95,7 +95,7 @@ else :
     DATABASES = {
         'default': {       
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'plugin_apicvf',
+            'NAME': 'plugin_apicvf_base',
             'USER': 'metwork',
             'PASSWORD': 'metwork',
             'HOST': 'apicb31-sidev',
