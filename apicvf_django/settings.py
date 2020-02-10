@@ -76,7 +76,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'apicvf_django.wsgi.application'
 
-LOCAL_VM = True
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 if DEBUG and LOCAL_VM :
