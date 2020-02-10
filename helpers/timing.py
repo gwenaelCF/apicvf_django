@@ -1,3 +1,5 @@
+import time
+
 class Timer(object):  
     def __enter__(self):  
         self.start()  
