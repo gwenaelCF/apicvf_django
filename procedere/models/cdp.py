@@ -2,14 +2,14 @@ from django.db import models
 from django.contrib.postgres.fields import JSONField
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
+from helpers.functions import default_emp
 #import gzip
 import datetime
 import csv
 
 
 
-def default_emp():
-    return dict()
+
 
 class Cdp(models.Model):
     """ classe mère pour l'ensemble des cdp """
