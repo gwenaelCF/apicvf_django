@@ -7,10 +7,6 @@ from helpers.functions import default_emp
 import datetime
 import csv
 
-
-
-
-
 class Cdp(models.Model):
     """ classe mère pour l'ensemble des cdp """
     class Meta:

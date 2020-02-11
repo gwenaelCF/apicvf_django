@@ -1,4 +1,3 @@
-
 def invert_dict(dico):
 	"""
 	 inversion d'un dictionnaire 

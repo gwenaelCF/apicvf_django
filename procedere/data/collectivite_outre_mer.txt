@@ -1,0 +1,93 @@
+975 01 	Miquelon-Langlade
+975 02 	Saint-Pierre
+977 01 	Saint-Barthélemy
+978 01 	Saint-Martin
+984 11 	Îles Saint-Paul et Nouvelle-Amsterdam
+984 12 	Archipel des Kerguelen
+984 13 	Archipel des Crozet
+984 14 	La Terre-Adélie
+984 15 	Îles Éparses de l'océan Indien
+986 11 	Alo
+986 12 	Sigave
+986 13 	Uvea
+98 7 11 	Anaa
+98 7 12 	Arue
+98 7 13 	Arutua
+98 7 14 	Bora-Bora
+98 7 15 	Faaa
+98 7 16 	Fakarava
+98 7 17 	Fangatau
+98 7 18 	Fatu-Hiva
+98 7 19 	Gambier
+98 7 20 	Hao
+98 7 21 	Hikueru
+98 7 22 	Hitiaa O Te Ra
+98 7 23 	Hiva-Oa
+98 7 24 	Huahine
+98 7 25 	Mahina
+98 7 26 	Makemo
+98 7 27 	Manihi
+98 7 28 	Maupiti
+98 7 29 	Moorea-Maiao
+98 7 30 	Napuka
+98 7 31 	Nuku-Hiva
+98 7 32 	Nukutavake
+98 7 33 	Paea
+98 7 34 	Papara
+98 7 35 	Papeete
+98 7 36 	Pirae
+98 7 37 	Pukapuka
+98 7 38 	Punaauia
+98 7 39 	Raivavae
+98 7 40 	Rangiroa
+98 7 41 	Rapa
+98 7 42 	Reao
+98 7 43 	Rimatara
+98 7 44 	Rurutu
+98 7 45 	Tahaa
+98 7 46 	Tahuata
+98 7 47 	Taiarapu-Est
+98 7 48 	Taiarapu-Ouest
+98 7 49 	Takaroa
+98 7 50 	Taputapuatea
+98 7 51 	Tatakoto
+98 7 52 	Teva I Uta
+98 7 53 	Tubuai
+98 7 54 	Tumaraa
+98 7 55 	Tureia
+98 7 56 	Ua-Huka
+98 7 57 	Ua-Pou
+98 7 58 	Uturoa
+98 8 01 	Belep
+98 8 02 	Bouloupari
+98 8 03 	Bourail
+98 8 04 	Canala
+98 8 05 	Dumbéa
+98 8 06 	Farino
+98 8 07 	Hienghène
+98 8 08 	Houaïlou
+98 8 09 	Île-des-Pins (L')
+98 8 10 	Kaala-Gomen
+98 8 11 	Koné
+98 8 12 	Koumac
+98 8 13 	La Foa
+98 8 14 	Lifou
+98 8 15 	Maré
+98 8 16 	Moindou
+98 8 17 	Mont-Dore (Le)
+98 8 18 	Nouméa
+98 8 19 	Ouégoa
+98 8 20 	Ouvéa
+98 8 21 	Païta
+98 8 22 	Poindimié
+98 8 23 	Ponérihouen
+98 8 24 	Pouébo
+98 8 25 	Pouembout
+98 8 26 	Poum
+98 8 27 	Poya
+98 8 28 	Sarraméa
+98 8 29 	Thio
+98 8 30 	Touho
+98 8 31 	Voh
+98 8 32 	Yaté
+98 8 33 	Kouaoua

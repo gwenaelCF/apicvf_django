@@ -37,8 +37,9 @@ def insert_grain(dicteur):
             grain = models.granularite.Grain(insee=d['com'])
             for l in ['dep', 'arr', 'tncc', 'ncc', 'nccenr', 'libelle']:
                 setattr(grain,l,d[l])
-            grain.dept =  liste_dept.get(insee=d['dep'])
-            grain.metrop = grain.dept.metrop
+            if d['dep']:
+                grain.dept =  liste_dept.get(insee=d['dep'])
+                grain.metrop = grain.dept.metrop
             liste_grain.append(grain)
     models.granularite.Grain.objects.bulk_create(liste_grain, batch_size=5000)
 
@@ -93,8 +94,8 @@ def run():
     filepath = './procedere/data/'
     filereg = filepath+'region2019.csv'
     filedept = filepath+'departement2019.csv'
-    filecom = filepath+'communes-01042019.csv'
-    fileorigin = filepath+'apic_communes_2020.csv'
+    filecom = filepath+'communes_all.csv'
+    fileorigin = filepath+'communes_origin.csv'
     #list_com, list_dept, list_reg = [], [], []
     print(f'création regions')
     with open(filereg,'r',encoding='utf-8-sig') as f:
