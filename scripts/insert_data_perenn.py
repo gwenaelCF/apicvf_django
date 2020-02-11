@@ -36,7 +36,8 @@ def insert_grain(dicteur):
         if d['typecom'] in ['COM', 'ARM']:
             grain = models.granularite.Grain(insee=d['com'])
             for l in ['dep', 'arr', 'tncc', 'ncc', 'nccenr', 'libelle']:
-                setattr(grain,l,d[l])
+                if d[l]:
+                    setattr(grain,l,d[l])
             if d['dep']:
                 grain.dept =  liste_dept.get(insee=d['dep'])
                 grain.metrop = grain.dept.metrop
