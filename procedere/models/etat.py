@@ -8,7 +8,7 @@ class Etat(models.Model):
         les abonnements sont listés pour chaque emprise concernée
     """
     produit = models.ForeignKey(Produit, on_delete=models.PROTECT)
-    t_2= models.SmallIntegerField(default=0)
+    lt_2= models.SmallIntegerField(default=0)
     t_1= models.SmallIntegerField(default=0)
     t0 = models.SmallIntegerField(default=0)
     abo_array = ArrayField(models.IntegerField(blank=True),blank=True, null=True) 

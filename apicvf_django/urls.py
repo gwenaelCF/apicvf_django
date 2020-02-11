@@ -24,11 +24,11 @@ urlpatterns = [
 # FOR CONFIGURING hello app
 from django.conf.urls import include, url
 
-urlpatterns.append(url(r'^apicvf/', include('apicvf.urls')))
-urlpatterns.append(path('', include('apicvf.urls')))
+urlpatterns.append(url(r'^procedere/', include('procedere.urls')))
+urlpatterns.append(path('', include('procedere.urls')))
 
-urlpatterns.append(url(r'^cdp/', include('cdp.urls')))
-urlpatterns.append(path('', include('cdp.urls')))
+urlpatterns.append(url(r'^procedere/', include('procedere.urls')))
+urlpatterns.append(path('', include('procedere.urls')))
 
 
 # ADDED BY METWORK/MFSERV/DJANGO PLUGIN TEMPLATE
