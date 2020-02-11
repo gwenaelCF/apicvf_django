@@ -27,7 +27,7 @@ def regl_apic_seuils(t_2,t_1,t0):
             return True
         if (t0!=-1 and t_1==0) or t0>max(t_2,t_1):
             return True
-    return Fallse
+    return False
 
 #
 #update états
