@@ -1,2 +1,2 @@
-from . import cdp, etat, granularite, produit
-__all__ = ["cdp","etat","granularite","produit"]
+from . import etat, granularite, produit
+__all__ = ["etat","granularite","produit"]
