@@ -10,7 +10,7 @@ PRODUITS = [('AFR','APIC METROPOLE'),
             ('ANC','APIC NOUVELLE CALEDONIE'),
             ]
 
-ORIGIN_DICO = {
+ORIGIN_PRODUITS = {
                     'fr':['AFR', 'VFR'],
                     'ga':['AAG'],
                     'ma':['AAG'],
@@ -18,13 +18,21 @@ ORIGIN_DICO = {
                     'nc':['ANC']
                     }
 
-PRODUITS_DICO = {
+PRODUITS_ORIGIN = {
                     'AFR':['fr'],
                     'VFR':['fr'],
                     'AAG':['ga','ma'],
                     'AOI':['re'],
                     'ANC':['nc']
                     }
+
+ENTETES_PRODUITS = {
+                    'CDPC40LFPW' : 'VFR',
+                    'FPFR42ATOS' : 'AFR',
+                    'FPFR43FMEE' : 'AOI',
+                    'FPFR43NWBB' : 'ANC',
+                    'FPFR43TFFF' : 'AAG',
+}
 
 
 class Regle(models.Model):
@@ -52,5 +60,10 @@ class Cdp(models.Model):
     reseau = models.DateTimeField()
     reception = models.DateTimeField()
     grains = JSONField(default=dict())
-    retard = models.BooleanField(False)
+    retard = models.BooleanField(default=False)
     traite = models.BooleanField(default=False)
+
+    @classmethod
+    def create(cls, cdp_file):
+        cdp = Cdp()
+        name = cdp_file.name

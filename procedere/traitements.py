@@ -1,4 +1,15 @@
 """ module de traitements des cdp """
+import threading
+
+#
+# démarrage en cas de requête mfdata
+class ReceptionCdp(threading.Thread):
+    def __init__(self, cdp, **kwargs):
+        self.cdp = cdp
+        super(ReceptionCdp, self).__init__(**kwargs)
+
+    def run(self):
+
 
 #fonctions de comparaison
 def seuilCompar(x):
