@@ -1,6 +1,10 @@
 """ module de traitements des cdp """
+import time
 import threading
+import logging
+from mflog import get_logger
 
+from procedere import models as pm
 #
 # démarrage en cas de requête mfdata
 class ReceptionCdp(threading.Thread):
@@ -9,6 +13,12 @@ class ReceptionCdp(threading.Thread):
         super(ReceptionCdp, self).__init__(**kwargs)
 
     def run(self):
+        logger = get_logger("apicvf_django")
+        logger.debug("démarrage du traitement")
+        data = self.cdp.read()
+        time.sleep(30)
+        logger.debug(data)
+        logger.debug("et voilà")
 
 
 #fonctions de comparaison
@@ -56,7 +66,7 @@ def regl_apic_seuils(t_2,t_1,t0):
         if t0==-1 :
             if (t_1==-1 and t_2 in [0,1]):
                 return True
-        if t_1=0 or
+        if t_1<t0 :
             return True
     return False
 
