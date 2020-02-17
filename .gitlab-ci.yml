@@ -1,0 +1,11 @@
+image: registry.gitlab.meteo.fr:80/metwork-plugins/docker_build/mfserv-gitlab-ci:2.3
+
+stages:
+  - sonar
+
+# scanne le code et envoi sur http://sonar.meteo.fr/dashboard?id=apic%3Adev
+# Les parametres de conf de sonar-scanner sont dans le dockerfile : RUN echo "sonar.host.url=${SONAR_HOST}" >> /opt/sonar-scanner/conf/sonar-scanner.properties
+scan-sonar:
+  stage: sonar
+  script:
+    - sonar-scanner

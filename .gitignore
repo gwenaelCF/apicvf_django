@@ -15,3 +15,5 @@ my_project_visualized.png
 apicvf_django.dot
 coverage.xml
 .coverage
+/.project
+/.pydevproject
