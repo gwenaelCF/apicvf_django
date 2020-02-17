@@ -5,3 +5,4 @@ django>=2.2,<2.3
 psycopg2
 django-extensions
 pydotplus
+coverage

@@ -13,3 +13,5 @@ __pycache__/
 /tmp_build
 my_project_visualized.png
 apicvf_django.dot
+coverage.xml
+.coverage
