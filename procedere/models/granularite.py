@@ -18,7 +18,7 @@ class Region(Granularite):
     
 class Dept(Granularite):
     """ ensemble de grains """
-    region = models.ForeignKey(Region, on_delete=models.PROTECT)
+    region = models.ForeignKey(Region, on_delete=models.PROTECT, null=True)
     cheflieu = models.CharField(max_length=200, null=True)
 
 class Grain(Granularite):

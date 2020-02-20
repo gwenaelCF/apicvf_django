@@ -22,14 +22,14 @@ class ReceptionCdp(threading.Thread):
 
 
 #fonctions de comparaison
-def seuilCompar(x):
+def compar_seuil(x):
     """ règle de comparaison pour les seuils """
     # 0<-1<1<2
     return (2*(x**2)+x)
 
-def findMax(l):
+def findmax(l):
     """ trouver le seuil maximum """
-    return max(set(l), key=seuilCompar)
+    return max(set(l), key=compar_seuil)
 
 
 def regles_vf(derniere_alerte, heure_reseau, t0, t_1, dt):

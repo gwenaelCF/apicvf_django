@@ -13,23 +13,24 @@ class Etat(models.Model):
     t_2= models.SmallIntegerField(default=0)
     t_1= models.SmallIntegerField(default=0)
     t0 = models.SmallIntegerField(default=0)
+    reseau = models.DateTimeField()
     abo_array = ArrayField(models.IntegerField(blank=True),blank=True, null=True) 
 
     class Meta :
         abstract = True
 
-class Etat_reg_produit(Etat):
+class EtatRegionProduit(Etat):
     """ état des régions par produit """
     reg = models.ForeignKey(Region, on_delete=models.PROTECT)
 
-class Etat_dept_produit(Etat):
+class EtatDeptProduit(Etat):
     """ état des départements par produit """
     dept = models.ForeignKey(Dept, on_delete=models.PROTECT)
     
-class Etat_grain_produit(Etat):
+class EtatGrainProduit(Etat):
     """ état des grains par produit """
     grain = models.ForeignKey(Grain, on_delete=models.PROTECT)
 
-class Etat_produit(Etat):
+class EtatProduit(Etat):
     """ état de l'ensemble des grains d'un produit """
     pass
