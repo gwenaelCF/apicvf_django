@@ -16,12 +16,12 @@ def index(request):
 def cdp(request):
     if request.method == 'POST':
         logger = get_logger("requete_cdp")
-        logger.info("avant thread")
+        logger.debug("avant thread")
         #dp = cdp.models.CdpApic.create(request.FILES['file'])
         dp = request.FILES['file']
-        passeplat = traitements.ReceptionCdp(dp)
-        passeplat.start()
-        logger.info("après thread")
+        passeplat = traitements.reception_cdp(dp)
+        #passeplat.start()
+        logger.debug("après thread")
         response_content = dp.name
         return HttpResponse(
             response_content

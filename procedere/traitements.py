@@ -7,18 +7,40 @@ from mflog import get_logger
 from procedere import models as pm
 #
 # démarrage en cas de requête mfdata
-class ReceptionCdp(threading.Thread):
+def reception_cdp(dp):
+    # TODO créer réellement l'object cdp
+    cdp = dp
+    teg = TraitementEtatGrains(cdp)
+    teg.start()
+    tc = TraitementCarto(cdp)
+    tc.start()
+    return True
+
+class TraitementEtatGrains(threading.Thread):
     def __init__(self, cdp, **kwargs):
         self.cdp = cdp
-        super(ReceptionCdp, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def run(self):
         logger = get_logger("apicvf_django")
-        logger.debug("démarrage du traitement")
+        logger.debug("démarrage du traitement des états")
         data = self.cdp.read()
         time.sleep(30)
         logger.debug(data)
-        logger.debug("et voilà")
+        logger.debug("et voilà les états")
+
+class TraitementCarto(threading.Thread):
+    def __init__(self, cdp, **kwargs):
+        self.cdp = cdp
+        super().__init__(**kwargs)
+
+    def run(self):
+        logger = get_logger("apicvf_django")
+        logger.debug("démarrage du traitement carto")
+        data = self.cdp.read()
+        time.sleep(30)
+        logger.debug(data)
+        logger.debug("et voilà la carto")
 
 
 #fonctions de comparaison
