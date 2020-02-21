@@ -17,4 +17,5 @@ coverage.xml
 .coverage
 /.project
 /.pydevproject
+procedere/migrations/*.py
 CHANGELOG*
