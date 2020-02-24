@@ -17,11 +17,10 @@ def cdp(request):
     if request.method == 'POST':
         logger = get_logger("requete_cdp")
         logger.debug("avant thread")
-        #dp = cdp.models.CdpApic.create(request.FILES['file'])
         dp = request.FILES['file']
-        passeplat = traitements.reception_cdp(dp)
-        #passeplat.start()
-        logger.debug("après thread")
+        #lancement des traitements
+        traitements.reception_cdp(dp)
+        logger.debug("après lancement thread")
         response_content = dp.name
         return HttpResponse(
             response_content
