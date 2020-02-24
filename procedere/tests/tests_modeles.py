@@ -36,6 +36,10 @@ class GranularityTestCase(TestCase):
         r = len(list(Region.objects.all()))
         self.assertEqual(r, 1)
 
+        # le libellé ne peut pas être vide
+        with self.assertRaises(IntegrityError, msg="Le libellé ne devrait pas être vide."):
+            with transaction.atomic(): 
+                Region.objects.create(insee='11', libelle='')
         
         # le code insee doit être unique
         try:
@@ -45,13 +49,8 @@ class GranularityTestCase(TestCase):
         except IntegrityError:
             pass
 
-        # le libellé ne peut pas être vide
-        try:
-            with transaction.atomic(): 
-                Region.objects.create(insee='11', libelle='')
-            self.fail("Le libellé ne devrait pas être vide.")
-        except IntegrityError:
-            pass
+        
+        
 
 
 

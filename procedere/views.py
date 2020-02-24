@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
-from . import traitements
+from . import reception_cdp
 from mflog import get_logger
 #import cdp.models
 # Create your views here.
