@@ -36,6 +36,13 @@ ENTETES_PRODUITS = {
                     'FPFR43_TFFF' : 'AAG',
 }
 
+TIMEZONE = {
+                'VFR' : "Europe/Paris",
+                'AFR' : "Europe/Paris",
+                'AOI' : "Indian/Reunion",
+                'ANC' : "Pacific/Noumea",
+                'AAG' : "America/Guadeloupe"
+            }
 
 logger = get_logger("produit (models)")
 
