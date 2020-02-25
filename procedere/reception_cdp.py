@@ -17,7 +17,7 @@ def am_i_master():
     return True
 
 def carto(cdp):
-    return True
+    return False
 
 def verif_reseau(cdp):
     pass
@@ -25,9 +25,10 @@ def verif_reseau(cdp):
 def sauv_local(data):
     pass
 
-def get_list_cdp():
+def get_list_cdp(cdp):
     # checker carto + diffusion
-    return []
+    # var cdp as a by-pass !! 2be removed
+    return [cdp]
 
 def set_etats(cdp):
     pass
@@ -84,21 +85,21 @@ class TraitementsCdp(threading.Thread):
             return None
 
         self.logger.debug("démarrage de la boucle sur les cdp")
-        cdp_list = get_list_cdp()
+        cdp_list = get_list_cdp(self.cdp)
         cdp_list.sort(key=lambda x: x.reseau)
         for cdp in cdp_list :
             #import carto quand l'app serait faite
             self.logger.info(f'traitment cdp {cdp.reseau} du produit {cdp.produit_id}')
-            if not cdp.status_carto :
+            if not cdp.statut_carto :
                 if carto(cdp) == True:
-                    cdp.status_carto = True
+                    cdp.statut_carto = True
                     cdp.save()
-            if not cdp.status_diffusions :
-                if not cdp.status_etats :
+            if not cdp.statut_diffusions :
+                if not cdp.statut_etats :
                     set_etats(cdp)
                 if not am_i_master() :
                     return None
-                if not cdp.status_avertissements :
+                if not cdp.statut_avertissements :
                     set_avertissements(cdp)
                 if not am_i_master():
                     return None

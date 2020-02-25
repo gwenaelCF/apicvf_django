@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.db import models
 from django.contrib.postgres.fields import JSONField
 
@@ -27,11 +29,11 @@ PRODUITS_ORIGIN = {
                     }
 
 ENTETES_PRODUITS = {
-                    'CDPC40LFPW' : 'VFR',
-                    'FPFR42ATOS' : 'AFR',
-                    'FPFR43FMEE' : 'AOI',
-                    'FPFR43NWBB' : 'ANC',
-                    'FPFR43TFFF' : 'AAG',
+                    'CDPC40_LFPW' : 'VFR',
+                    'FPFR42_ATOS' : 'AFR',
+                    'FPFR43_FMEE' : 'AOI',
+                    'FPFR43_NWBB' : 'ANC',
+                    'FPFR43_TFFF' : 'AAG',
 }
 
 
@@ -68,23 +70,29 @@ class Cdp(models.Model):
     reseau = models.DateTimeField()
     reception = models.DateTimeField()
     seuils_grains = JSONField(default=dict())
-    seuils_tronçons = JSONField(default=dict(), null=True)
+    seuils_troncons = JSONField(default=dict(), null=True)
     retard = models.BooleanField(default=False)
     statut_carto = models.BooleanField(default=False)
-    status_etats = models.BooleanField(default=False)
-    status_avertissements = models.BooleanField(default=False)
-    status_diffusions = models.BooleanField(default=False)
-    status_acquitements =models.BooleanField(default=False)
+    statut_etats = models.BooleanField(default=False)
+    statut_avertissements = models.BooleanField(default=False)
+    statut_diffusions = models.BooleanField(default=False)
+    statut_acquitements =models.BooleanField(default=False)
 
     @classmethod
     def create(cls, cdp_file):
         cdp = Cdp()
-        cdp.data = cdp_file
+        cdp.data = cdp_file.read()
         cdp.name = cdp_file.name
-        data = cdp_file.readlines()
-        #header = data[0].split(';')
-        logger.debug(type(data))
-        logger.debug(f'{cdp.name} {cdp_file.size} {cdp_file.content_type} {cdp_file.charset}')
+        data = [l.decode('utf-8') for l in cdp.data.splitlines()]
+        cdp.nom_produit = ENTETES_PRODUITS[cdp.name[:11]]
+        header = data[0].split(';')
+        cdp.reseau = datetime.strptime(header[0],'%Y%m%d%H%M%S')
+        if cdp.nom_produit[0]=='V':
+            cdp.seuils_troncons = {l[0]:l[1] for l in data[1:int(header[1])+1]}
+            cdp.seuils_grains = {l[0]:l[1] for l in data[int(header[1])+1:]}
+        else :
+            cdp.seuils_grains = {l[0]:l[3] for l in data[1:]}
+        logger.debug(f'{cdp.nom_produit} {cdp.name} {cdp_file.size} {cdp_file.content_type} {cdp_file.charset}')
         return cdp
 
 
