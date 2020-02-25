@@ -75,23 +75,3 @@ class GestionDossier:
             return self.path.rglob(pattern)
         else :
             return self.path.glob(pattern)
-
-class GestionCdp(GestionDossier):
-
-    def __init__(self, chemincdp, nomproduit):
-        
-        self.chemin=chemincdp
-        self.produit=nomproduit
-        self.current = Path('.')
-        self.path = Path(self.chemin, self.produit)
-        self.creer_chemin()
-        
-    @property
-    def path(self):
-        return self._path
-    @path.setter
-    def path(self, p):
-        if str(self.current.resolve().stem) in str(p.resolve()) :
-            self.logger.error("le chemin de l'app est interdit")
-            raise ValueError
-        self._path = Path(chemin+produit)

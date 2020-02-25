@@ -1,13 +1,12 @@
 """ module de traitements des cdp """
 import time
 import threading
-import logging
+
 from mflog import get_logger
 
 from procedere import models as pm
-from . import traitement_etats_grains, traitement_carto
-#
-# démarrage en cas de requête mfdata
+from helpers.gestion_dossier import GestionDossier
+
 def reception_cdp(dp):
     plat = TraitementsCdp(dp)
     plat.start()
@@ -28,7 +27,7 @@ def sauv_local(data):
 
 def get_list_cdp():
     # checker carto + diffusion
-    pass
+    return []
 
 def set_etats(cdp):
     pass
@@ -39,6 +38,25 @@ def set_avertissements(cdp):
 def set_diffusions(cdp):
     pass
 
+class GestionCdp(GestionDossier):
+
+    def __init__(self, chemincdp, nomproduit):
+        
+        self.chemin=chemincdp
+        self.produit=nomproduit
+        self.current = Path('.')
+        self.path = Path(self.chemin, self.produit)
+        self.creer_chemin()
+        
+    @property
+    def path(self):
+        return self._path
+    @path.setter
+    def path(self, p):
+        if str(self.current.resolve().stem) in str(p.resolve()) :
+            self.logger.error("le chemin de l'app est interdit")
+            raise ValueError
+        self._path = Path(chemin+produit)
 
 class TraitementsCdp(threading.Thread):
     logger = get_logger("thread traitement")
