@@ -37,6 +37,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'procedere',
     'epistola',
+    'parameters',
     'django_extensions',
     'django.contrib.admin',
     'django.contrib.auth',

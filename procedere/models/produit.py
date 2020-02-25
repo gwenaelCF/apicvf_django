@@ -76,6 +76,7 @@ class Cdp(models.Model):
     @classmethod
     def create(cls, cdp_file):
         cdp = Cdp()
+        cdp.data = cdp_file
         cdp.name = cdp_file.name
         data = cdp_file.readlines()
         #header = data[0].split(';')
