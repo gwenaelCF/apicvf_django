@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.postgres.fields import JSONField
 
+from mflog import get_logger
 
 PRODUITS = [('AFR','APIC METROPOLE'),
             ('VFR','VF METROPOLE'),
@@ -33,6 +34,8 @@ ENTETES_PRODUITS = {
                     'FPFR43TFFF' : 'AAG',
 }
 
+
+logger = get_logger("produit (models)")
 
 class Regle(models.Model):
     """ regle de calcul des avertissements
@@ -81,6 +84,7 @@ class Cdp(models.Model):
         data = cdp_file.readlines()
         #header = data[0].split(';')
         logger.debug(type(data))
-        logger.debug(f'{self.cdp.name} {self.cdp.size} {self.cdp.content_type} {self.cdp.charset}')
+        logger.debug(f'{cdp.name} {cdp_file.size} {cdp_file.content_type} {cdp_file.charset}')
+        return cdp
 
 

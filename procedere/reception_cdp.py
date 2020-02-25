@@ -8,7 +8,7 @@ from procedere import models as pm
 from . import traitement_etats_grains, traitement_carto
 #
 # démarrage en cas de requête mfdata
-def reception_cdp(dp):l
+def reception_cdp(dp):
     plat = TraitementsCdp(dp)
     plat.start()
     return True
@@ -17,12 +17,35 @@ def am_i_master():
     #TODO real one
     return True
 
+def carto(cdp):
+    return True
+
+def verif_reseau(cdp):
+    pass
+
+def sauv_local(data):
+    pass
+
+def get_list_cdp():
+    # checker carto + diffusion
+    pass
+
+def set_etats(cdp):
+    pass
+
+def set_avertissements(cdp):
+    pass
+
+def set_diffusions(cdp):
+    pass
+
+
 class TraitementsCdp(threading.Thread):
-    logger = get_logger("apicvf_django")
+    logger = get_logger("thread traitement")
 
     def __init__(self, cdp, **kwargs):
         self.logger.debug("instanciation du thread")
-        self.cdp = pm.produit.Cdp(cdp)
+        self.cdp = pm.produit.Cdp.create(cdp)
         super().__init__(**kwargs)
 
     def run(self):
@@ -34,7 +57,7 @@ class TraitementsCdp(threading.Thread):
         if verif_reseau(self.cdp.reseau) == False :
             self.logger.info("réseau en retard déjà instancié à -1")
             return None
-        if sauv_local(cdp.data) == False:
+        if sauv_local(self.cdp.data) == False:
             self.logger.warning("impossible de sauvegarder un cdp !\
                          cdp {cdp.reseau} du produit {cdp.produit_id}")
             return None
@@ -48,36 +71,22 @@ class TraitementsCdp(threading.Thread):
         for cdp in cdp_list :
             #import carto quand l'app serait faite
             self.logger.info(f'traitment cdp {cdp.reseau} du produit {cdp.produit_id}')
-            if carto(cdp) == True:
-                cdp.status_carto = True
-                cdp.save()
-            if cdp.status_etats == False :
-                set_etats(cdp)
-            if not am_i_master() :
-                return None
-            if not cdp.status_avertissements :
-                set_avertissements(cdp)
-            if not am_i_master():
-                return None
+            if not cdp.status_carto :
+                if carto(cdp) == True:
+                    cdp.status_carto = True
+                    cdp.save()
             if not cdp.status_diffusions :
+                if not cdp.status_etats :
+                    set_etats(cdp)
+                if not am_i_master() :
+                    return None
+                if not cdp.status_avertissements :
+                    set_avertissements(cdp)
+                if not am_i_master():
+                    return None
+                
                 set_diffusions(cdp)
 
         return True
 
-    def verif_reseau(cdp):
-        pass
-
-    def sauv_local(data):
-        pass
-
-    def get_list_cdp():
-        pass
-
-    def set_etats(cdp):
-        pass
-
-    def set_avertissements(cdp):
-        pass
-
-    def set_diffusions(cdp):
-        pass
+    
