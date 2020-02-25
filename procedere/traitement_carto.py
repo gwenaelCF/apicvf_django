@@ -13,6 +13,4 @@ class TraitementCarto(threading.Thread):
         logger = get_logger("apicvf_django")
         logger.debug("démarrage du traitement carto")
         data = self.cdp.read()
-        time.sleep(30)
-        logger.debug(data)
         logger.debug("et voilà la carto")

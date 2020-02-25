@@ -60,18 +60,26 @@ class Produit(models.Model):
 class Cdp(models.Model):
     """ classe liant un fichier de grain:seuil pour un réseau à un produit """
     
-    produit = models.ForeignKey(Produit, on_delete=models.SET_NULL, null=True)
+    name = models.CharField(max_length=60)
+    produit = models.ForeignKey(Produit, on_delete=models.PROTECT)
     reseau = models.DateTimeField()
     reception = models.DateTimeField()
     seuils_grains = JSONField(default=dict())
+    seuils_tronçons = JSONField(default=dict(), null=True)
     retard = models.BooleanField(default=False)
-    etats_grains_produit = models.BooleanField(default=False)
-    avertissements = models.BooleanField(default=False)
-    diffusions = models.BooleanField(default=False)
-    acquitements =models.BooleanField(default=False)
+    statut_carto = models.BooleanField(default=False)
+    status_etats = models.BooleanField(default=False)
+    status_avertissements = models.BooleanField(default=False)
+    status_diffusions = models.BooleanField(default=False)
+    status_acquitements =models.BooleanField(default=False)
 
     @classmethod
     def create(cls, cdp_file):
         cdp = Cdp()
-        name = cdp_file.name
+        cdp.name = cdp_file.name
+        data = cdp_file.readlines()
+        #header = data[0].split(';')
+        logger.debug(type(data))
+        logger.debug(f'{self.cdp.name} {self.cdp.size} {self.cdp.content_type} {self.cdp.charset}')
+
 

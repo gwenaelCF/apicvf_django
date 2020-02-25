@@ -19,7 +19,7 @@ def cdp(request):
         logger.debug("avant thread")
         dp = request.FILES['file']
         #lancement des traitements
-        traitements.reception_cdp(dp)
+        reception_cdp.reception_cdp(dp)
         logger.debug("après lancement thread")
         response_content = dp.name
         return HttpResponse(
