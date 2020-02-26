@@ -13,7 +13,7 @@ class Etat(models.Model):
     t_2= models.SmallIntegerField(default=0)
     t_1= models.SmallIntegerField(default=0)
     t0 = models.SmallIntegerField(default=0)
-    reseau = models.DateTimeField()
+    reseau = models.DateTimeField(null=True)
     abo_array = ArrayField(models.IntegerField(blank=True),blank=True, null=True) 
 
     class Meta :
