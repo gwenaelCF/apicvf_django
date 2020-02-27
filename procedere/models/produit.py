@@ -50,8 +50,8 @@ class Regle(models.Model):
     """ regle de calcul des avertissements
         fourni un JSON => dict() qui pour chaque clé renvoie True ou False pour diffusion
     """
-    name = models.CharField(max_length=40, null=True)
-    tableau = JSONField(default=dict())
+    name = models.CharField(max_length=40, null=True, unique=True)
+    tableau = JSONField(default=dict)
     ## !!! vérifier options !!!
     dt = models.DurationField(null=True)
 
@@ -64,8 +64,8 @@ class Produit(models.Model):
     name = models.CharField(max_length=40)
     regle = models.ForeignKey(Regle, on_delete=models.PROTECT)
     entete = models.CharField(max_length=12, unique=True)
-    grains = JSONField(default=dict())
-    couverture = models.CharField(max_length=12)
+    grains = JSONField(default=dict)
+    couverture = JSONField(default=dict)
     timezone = models.CharField(max_length=40)
     
 
@@ -76,8 +76,8 @@ class Cdp(models.Model):
     produit = models.ForeignKey(Produit, on_delete=models.PROTECT)
     reseau = models.DateTimeField()
     reception = models.DateTimeField()
-    seuils_grains = JSONField(default=dict())
-    seuils_troncons = JSONField(default=dict(), null=True)
+    seuils_grains = JSONField(default=dict)
+    seuils_troncons = JSONField(default=dict, null=True)
     retard = models.BooleanField(default=False)
     statut_carto = models.BooleanField(default=False)
     statut_etats = models.BooleanField(default=False)
