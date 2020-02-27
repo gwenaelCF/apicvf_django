@@ -1,8 +1,10 @@
 import csv
 import time
+import os
 
 from django.core.management.base import BaseCommand, CommandError
 from django.core import serializers
+from django.apps import apps
 
 from procedere import models
 
@@ -19,9 +21,10 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('todo', nargs='+', type=str)
+        parser.add_argument('-d', type=str, default="", help="Répertoire dans lequel trouver les fichiers d'entrée relativement au manage.py.")
+
 
     def handle(self, *args, **options):
-        
         def insert_regles(data):
             qs = models.produit.Regle.objects.all().values_list('name', flat=True)
             for regle in serializers.deserialize('json',data):
@@ -129,12 +132,16 @@ class Command(BaseCommand):
         etats = 'etats' in todo
         tout = 'tout' in todo
 
-        filepath = './procedere/data/'
-        fileregle = filepath+'regles.json'
-        filereg = filepath+'region2019.csv'
-        filedept = filepath+'departement2019.csv'
-        filecom = filepath+'communes_all.csv'
-        fileorigin = filepath+'communes_origin.csv'
+
+        path_procedere = apps.get_app_config('procedere').path
+        filepath = os.path.join(path_procedere, 'data')
+        if options['d']:
+            filepath = os.path.join(path_procedere, options['d'])
+        fileregle = os.path.join(filepath,'regles.json')
+        filereg = os.path.join(filepath,'region2019.csv')
+        filedept = os.path.join(filepath,'departement2019.csv')
+        filecom = os.path.join(filepath,'communes_all.csv')
+        fileorigin = os.path.join(filepath,'communes_origin.csv')
 
         t_start = time.time()
         if tout or regles:
