@@ -22,6 +22,7 @@ class GestionDossier:
 
     def creer_chemin(self):
         self.path.mkdir(parents=True, exist_ok=True)
+        return True
 
     def lister_fichiers(self):
         """ retourne la liste des fichiers d'un dossier sous forme de Path """
@@ -42,9 +43,12 @@ class GestionDossier:
             self.logger.debug("fichier "+nom+" créé")
         except FileExistsError:
             self.logger.warning("fichier "+nom+" existe déjà")
+            return False
         except Exception as e:
             self.logger.critical("le fichier "+nom+" n'a pas pu ẽtre créer\n"
                                  +str(e))
+            return False
+        return True
 
     def efface_moissa(self, nom=""):
         """ classe pour effacer 

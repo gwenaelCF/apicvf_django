@@ -1,10 +1,12 @@
 """ module de traitements des cdp """
 import time
 import threading
+from pathlib import Path
 
 from mflog import get_logger
 
 from procedere import models as pm
+from parameters import models as param
 from helpers.gestion_dossier import GestionDossier
 from carto import traitement_carto as tc 
 
@@ -17,38 +19,16 @@ def am_i_master():
     #TODO real one
     return True
 
-def carto(cdp):
-    # carto
-    carto_process = tc.TraitementCarto(cdp)
-    return carto_process.process()
-    # fin carto
 
-def verif_reseau(cdp):
-    pass
-
-def sauv_local(data):
-    pass
-
-def get_list_cdp(cdp):
-    # checker carto + diffusion
-    # var cdp as a by-pass !! 2be removed
-    return [cdp]
-
-def set_etats(cdp):
-    pass
-
-def set_avertissements(cdp):
-    pass
-
-def set_diffusions(cdp):
-    pass
 
 class GestionCdp(GestionDossier):
 
-    def __init__(self, chemincdp, nomproduit):
-        
-        self.chemin=chemincdp
-        self.produit=nomproduit
+    def __init__(self, cdp):
+        self.logger = get_logger('GestionDossier')
+        self.logger.debug(cdp.produit.name)
+        self.cdp = cdp
+        self.chemin = param.Application.objects.get(key='chemin_cdp').values
+        self.produit = self.cdp.produit.name
         self.current = Path('.')
         self.path = Path(self.chemin, self.produit)
         self.creer_chemin()
@@ -63,6 +43,10 @@ class GestionCdp(GestionDossier):
             raise ValueError
         self._path = Path(chemin+produit)
 
+    def creer_fichier(self):
+        return super().creer_fichier(self, self.cdp.name, self.cdp.data)
+
+
 class TraitementsCdp(threading.Thread):
     logger = get_logger("thread traitement")
 
@@ -71,16 +55,50 @@ class TraitementsCdp(threading.Thread):
         self.cdp = pm.produit.Cdp.create(cdp)
         super().__init__(**kwargs)
 
+    def verif_reseau(self):
+        pass
+
+    def sauv_local(self):
+        gestion = GestionCdp(self.cdp)
+        sortie = gestion.creer_fichier()
+        return sortie
+        
+
+    # méthodes ci-dessous en static car on part d'une liste de cdp
+    @staticmethod
+    def carto(cdp):
+        carto_process = tc.TraitementCarto(cdp)
+        return carto_process.process()
+
+    @staticmethod
+    def get_list_cdp(cdp):
+        # checker carto + diffusion
+        # var cdp as a by-pass !! 2be removed
+        return [cdp]
+
+    @staticmethod
+    def set_etats(cdp):
+        pass
+
+    @staticmethod
+    def set_avertissements(cdp):
+        pass
+
+    @staticmethod
+    def set_diffusions(cdp):
+        pass
+
+
     def run(self):
         self.logger.debug("démarrage du traitement")
         self.logger.debug("vérifications")
         if self.cdp == None :
             self.logger.warning("cdp mal formé")
             return None
-        if verif_reseau(self.cdp.reseau) == False :
+        if self.verif_reseau() == False :
             self.logger.info("réseau en retard déjà instancié à -1")
             return None
-        if sauv_local(self.cdp.data) == False:
+        if self.sauv_local() == False:
             self.logger.warning("impossible de sauvegarder un cdp !\
                          cdp {cdp.reseau} du produit {cdp.produit_id}")
             return None
@@ -89,26 +107,34 @@ class TraitementsCdp(threading.Thread):
             return None
 
         self.logger.debug("démarrage de la boucle sur les cdp")
-        cdp_list = get_list_cdp(self.cdp)
+        cdp_list = self.get_list_cdp(self.cdp)
         cdp_list.sort(key=lambda x: x.reseau)
         for cdp in cdp_list :
-            
             self.logger.info(f'traitment cdp {cdp.reseau} du produit {cdp.produit_id}')
             if not cdp.statut_carto :
-                if carto(cdp) == True:
-                    cdp.statut_carto = True
-                    cdp.save()
+                try :
+                    if self.carto(cdp) == True:
+                        cdp.statut_carto = True
+                        cdp.save()
+                except :
+                    self.logger.warning(f'carto de {cdp.reseau} du produit {cdp.produit_id} a échoué')
             if not cdp.statut_diffusions :
-                if not cdp.statut_etats :
-                    set_etats(cdp)
                 if not am_i_master() :
+                    break
+                try :
+                    if not cdp.statut_etats :
+                        self.set_etats(cdp)
+                except :
+                    self.logger.warning(f'ETATS de {cdp.reseau} du produit {cdp.produit_id} a échoué')
                     return None
-                if not cdp.statut_avertissements :
-                    set_avertissements(cdp)
-                if not am_i_master():
-                    return None
-                
-                set_diffusions(cdp)
+                if not am_i_master() :
+                    break
+                try :
+                    if not cdp.statut_avertissements :
+                        self.set_avertissements(cdp)
+                except :
+                    self.logger.warning(f'AVERTISSEMENTS de {cdp.reseau} du produit {cdp.produit_id} a échoué')
+                #self.set_diffusions() !! à faire dans une autre requete
 
         return True
 

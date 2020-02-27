@@ -92,7 +92,11 @@ class Cdp(models.Model):
         cdp.data = cdp_file.read()
         cdp.name = cdp_file.name
         # TODO regex en paramètres !!!
-        cdp.produit = Produit.objects.get(shortname=ENTETES_PRODUITS[cdp.name[:11]])
+        try :
+            cdp.produit = Produit.objects.get(shortname=ENTETES_PRODUITS[cdp.name[:11]])
+        except :
+            logger.warning(f'cdp.name ne correspond pas à un produit')
+            return None
         data = [l.decode('utf-8').split(';') for l in cdp.data.splitlines()]
         # cdp.nom_produit = ENTETES_PRODUITS[cdp.name[:11]]
         header = data[0]
