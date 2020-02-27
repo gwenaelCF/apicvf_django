@@ -99,7 +99,7 @@ class Cdp(models.Model):
             cdp.seuils_grains = {l[0]:l[1] for l in data[int(header[1])+1:]}
         else :
             cdp.seuils_grains = {l[0]:l[3] for l in data[1:]}
-        logger.debug(f'{cdp.nom_produit} {cdp.name} {cdp_file.size} {cdp_file.content_type} {cdp_file.charset}')
+        logger.debug(f'{cdp.nom_produit} {cdp.name} {cdp_file.size}')
         return cdp
 
 
