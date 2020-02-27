@@ -18,7 +18,10 @@ def am_i_master():
     return True
 
 def carto(cdp):
-    return False
+    # carto
+    carto_process = tc.TraitementCarto(cdp)
+    return carto_process.process()
+    # fin carto
 
 def verif_reseau(cdp):
     pass
@@ -89,10 +92,7 @@ class TraitementsCdp(threading.Thread):
         cdp_list = get_list_cdp(self.cdp)
         cdp_list.sort(key=lambda x: x.reseau)
         for cdp in cdp_list :
-            # carto
-            carto_process = tc.TraitementCarto(cdp)
-            cdp.statut_carto = carto_process.process()
-            # fin carto
+            
             self.logger.info(f'traitment cdp {cdp.reseau} du produit {cdp.produit_id}')
             if not cdp.statut_carto :
                 if carto(cdp) == True:
