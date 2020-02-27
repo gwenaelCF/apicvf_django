@@ -90,16 +90,25 @@ class Cdp(models.Model):
         cdp = Cdp()
         cdp.data = cdp_file.read()
         cdp.name = cdp_file.name
-        data = [l.decode('utf-8') for l in cdp.data.splitlines()]
-        cdp.nom_produit = ENTETES_PRODUITS[cdp.name[:11]]
-        header = data[0].split(';')
-        cdp.reseau = datetime.strptime(header[0],'%Y%m%d%H%M%S')
-        if cdp.nom_produit[0]=='V':
+        # TODO regex en paramètres !!!
+        cdp.produit = Produit.objects.get(shortname=ENTETES_PRODUITS[cdp.name[:11]])
+        data = [l.decode('utf-8').split(';') for l in cdp.data.splitlines()]
+        # cdp.nom_produit = ENTETES_PRODUITS[cdp.name[:11]]
+        header = data[0]
+        logger.debug(re.search('.(\d{12})',cdp.name).group(1))
+        # TODO add more checks on cdp
+        reg_reseau = re.search('(\d{6}).(\d{6})',cdp.name)
+        reseau = reg_reseau.group(2)+reg_reseau.group(1)
+        if header[0] != reseau :
+            return None
+        cdp.reseau = datetime.strptime(header[0],'%Y%m%d%H%M')
+        if cdp.produit.name[0]=='V':
             cdp.seuils_troncons = {l[0]:l[1] for l in data[1:int(header[1])+1]}
-            cdp.seuils_grains = {l[0]:l[1] for l in data[int(header[1])+1:]}
+            cdp.seuils_grains = {l[0]:l[1] for l in data[int(header[1])+1:int(header[2])+int(header[1])+1]}
         else :
-            cdp.seuils_grains = {l[0]:l[3] for l in data[1:]}
-        logger.debug(f'{cdp.nom_produit} {cdp.name} {cdp_file.size}')
+            cdp.seuils_grains = {l[0]:l[3] for l in data[1:int(header[1])+1]}
+        logger.info(f'{cdp.name} traité')
+        logger.debug(f'{len(cdp.seuils_grains)} {len(cdp.seuils_troncons)}')
         return cdp
 
 
