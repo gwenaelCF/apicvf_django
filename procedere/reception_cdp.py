@@ -6,6 +6,7 @@ from mflog import get_logger
 
 from procedere import models as pm
 from helpers.gestion_dossier import GestionDossier
+from carto import traitement_carto as tc 
 
 def reception_cdp(dp):
     plat = TraitementsCdp(dp)
@@ -17,7 +18,10 @@ def am_i_master():
     return True
 
 def carto(cdp):
-    return False
+    # carto
+    carto_process = tc.TraitementCarto(cdp)
+    return carto_process.process()
+    # fin carto
 
 def verif_reseau(cdp):
     pass
@@ -88,7 +92,7 @@ class TraitementsCdp(threading.Thread):
         cdp_list = get_list_cdp(self.cdp)
         cdp_list.sort(key=lambda x: x.reseau)
         for cdp in cdp_list :
-            #import carto quand l'app serait faite
+            
             self.logger.info(f'traitment cdp {cdp.reseau} du produit {cdp.produit_id}')
             if not cdp.statut_carto :
                 if carto(cdp) == True:
