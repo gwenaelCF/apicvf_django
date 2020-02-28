@@ -24,6 +24,10 @@ unit-testing:
   stage: unittests
   script:
     - echo '1. Launch unittests + coverage'
+    - su - mfserv
+    - mfserv.start
+	- make release
+	- plugins.install apicvf_django-*.metwork.mfserv.plugin
     - coverage run --source='carto' manage.py test carto.tests --keepdb
     - coverage xml
 
