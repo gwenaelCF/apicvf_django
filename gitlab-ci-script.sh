@@ -3,14 +3,14 @@
 # by default run testu
 # with --testu, run only the testu
 
-GIT_BASE="/builds/apic/apicvf_django"
+GIT_BASE="/builds/apic/"
 PLUGIN_NAME="apicvf_django"
 PLUGIN_RUNTIME="/home/mfserv/var/plugins/${PLUGIN_NAME}"
 
 install()
 {
     # start mfserv
-	mfserv.start
+    mfserv.start
 	# make relase
 	make release
 	# install plugin
