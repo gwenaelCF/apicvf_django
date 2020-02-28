@@ -1,7 +1,7 @@
 """ module de traitements des cdp """
-import time
 import threading
 from pathlib import Path
+from datetime import datetime, timezone
 
 from mflog import get_logger
 
@@ -27,7 +27,7 @@ class GestionCdp(GestionDossier):
         self.logger = get_logger('GestionDossier')
         self.logger.debug(cdp.produit.name)
         self.cdp = cdp
-        self.chemin = param.Application.objects.get(key='chemin_cdp').values
+        self.chemin = param.get_value('app', 'chemin_cdp')
         self.produit = self.cdp.produit.name
         self.current = Path('.')
         self.path = Path(self.chemin, self.produit)
@@ -41,10 +41,10 @@ class GestionCdp(GestionDossier):
         if str(self.current.resolve().stem) in str(p.resolve()) :
             self.logger.error("le chemin de l'app est interdit")
             raise ValueError
-        self._path = Path(chemin+produit)
+        self._path = Path(self.chemin, self.produit)
 
     def creer_fichier(self):
-        return super().creer_fichier(self, self.cdp.name, self.cdp.data)
+        return super().creer_fichier(self.cdp.name, self.cdp.data)
 
 
 class TraitementsCdp(threading.Thread):
@@ -56,6 +56,7 @@ class TraitementsCdp(threading.Thread):
         super().__init__(**kwargs)
 
     def verif_reseau(self):
+        now = datetime.now(timezone.utc)
         pass
 
     def sauv_local(self):
@@ -71,10 +72,10 @@ class TraitementsCdp(threading.Thread):
         return carto_process.process()
 
     @staticmethod
-    def get_list_cdp(cdp):
+    def get_list_cdp():
         # checker carto + diffusion
-        # var cdp as a by-pass !! 2be removed
-        return [cdp]
+        
+        return []
 
     @staticmethod
     def set_etats(cdp):
@@ -102,12 +103,14 @@ class TraitementsCdp(threading.Thread):
             self.logger.warning("impossible de sauvegarder un cdp !\
                          cdp {cdp.reseau} du produit {cdp.produit_id}")
             return None
+        else :
+            self.logger.info(f"cdp {self.cdp.name} sauvegardé")
         if am_i_master() == False:
             self.logger.info("cdp reçu et pris en charge - Sensei s'en occupe")
             return None
 
         self.logger.debug("démarrage de la boucle sur les cdp")
-        cdp_list = self.get_list_cdp(self.cdp)
+        cdp_list = self.get_list_cdp(self.cdp.produit_id)
         cdp_list.sort(key=lambda x: x.reseau)
         for cdp in cdp_list :
             self.logger.info(f'traitment cdp {cdp.reseau} du produit {cdp.produit_id}')

@@ -107,6 +107,7 @@ class Cdp(models.Model):
         if header[0] != reseau :
             return None
         cdp.reseau = datetime.strptime(header[0],'%Y%m%d%H%M')
+        # TODO modif ce == 'V' qui fait mal aux yeux
         if cdp.produit.name[0]=='V':
             cdp.seuils_troncons = {l[0]:l[1] for l in data[1:int(header[1])+1]}
             cdp.seuils_grains = {l[0]:l[1] for l in data[int(header[1])+1:int(header[2])+int(header[1])+1]}

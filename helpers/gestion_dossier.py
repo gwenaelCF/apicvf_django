@@ -38,8 +38,8 @@ class GestionDossier:
         """
         self.creer_chemin()
         try:
-            p.joinpath(nom).touch(exist_ok=ecrase)
-            p.joinpath(nom).write_bytes(fichier)
+            self.path.joinpath(nom).touch(exist_ok=ecrase)
+            self.path.joinpath(nom).write_bytes(fichier)
             self.logger.debug("fichier "+nom+" créé")
         except FileExistsError:
             self.logger.warning("fichier "+nom+" existe déjà")
