@@ -39,8 +39,6 @@ class TraitementCarto():
     vf_pos_seuil = 1
     # dictionary grain->dept
     grain_dept_dict = {}
-    # dictionary dept->[seuils]
-    list_dept_seuil = {}
 
     def __init__(self, cdp, **kwargs):
         """
@@ -49,6 +47,8 @@ class TraitementCarto():
         """
         self.logger = get_logger("apicvf_django.carto")
         self.cdp = cdp
+        # dictionary dept->[seuils]
+        self.list_dept_seuil = {}
        
     def process(self):
         """
@@ -57,6 +57,8 @@ class TraitementCarto():
         """
         
         try:
+
+            self.logger.info('Début carto !')
         
             # Get the original CDP file name
             original_cdp_filename = self.cdp.name
@@ -111,6 +113,8 @@ class TraitementCarto():
             if not reseau_status:
                 return False
         
+            self.logger.info('Fin carto !')
+
         except Exception as e:
             # Handle exceptions
             raise Exception(str(e))
@@ -306,7 +310,7 @@ class TraitementCarto():
                 data_json['troncons'].append({'id':data_row[self.vf_pos_gr], 'c:':data_row[self.vf_pos_seuil]})  
                 nb_elements["troncon"] = nb_elements.get('troncon') + 1                       
             # grain
-            elif re.match(self.vf_gr_regex, data_row):
+            elif re.match(self.vf_gr_regex, row):
                 data_json['communes'].append({'id':data_row[self.vf_pos_gr], 'c:':data_row[self.vf_pos_seuil]})
                 grain = str(data_row[self.vf_pos_gr])
                 seuil = int(data_row[self.vf_pos_seuil])
