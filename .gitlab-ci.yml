@@ -19,17 +19,25 @@ variables:
   POSTGRES_HOST: localhost
   POSTGRES_PORT: 7432
 
+# Avant script
+.before_script_template: &prepare-env
+  before_script:
+    - cp gitlab-ci-script.sh /usr/local/bin/
+    - su - mfserv
+
 # Lance tests unitaires + couverture
 unit-testing:
   stage: unittests
+  <<: *prepare-env
   script:
     - echo '1. Launch unittests + coverage'
-    - su - mfserv
-    - mfserv.start
-    - make release
-    - plugins.install apicvf_django-*.metwork.mfserv.plugin
-    - coverage run --source='carto' manage.py test carto.tests --keepdb
-    - coverage xml
+    - su -c "gitlab-ci-script.sh --testu" - mfserv
+    #- su - mfserv
+    # - su -c "mfserv.start" - mfserv
+    #- su -c "make release" - mfserv
+    #- plugins.install apicvf_django-*.metwork.mfserv.plugin
+    #- coverage run --source='carto' manage.py test carto.tests --keepdb
+    #- coverage xml
 
 # Scanne le code et envoi sur http://sonar.meteo.fr/dashboard?id=apic%3Acarto
 # Les étapes post 'sonar-scanner' servent à remonter le résultat de l'analyse à Gitlal CI/CD
