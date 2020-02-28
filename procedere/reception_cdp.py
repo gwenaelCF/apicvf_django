@@ -72,10 +72,10 @@ class TraitementsCdp(threading.Thread):
         return carto_process.process()
 
     @staticmethod
-    def get_list_cdp():
+    def get_list_cdp(cdp):
         # checker carto + diffusion
         
-        return []
+        return [cdp]
 
     @staticmethod
     def set_etats(cdp):
@@ -110,7 +110,7 @@ class TraitementsCdp(threading.Thread):
             return None
 
         self.logger.debug("démarrage de la boucle sur les cdp")
-        cdp_list = self.get_list_cdp(self.cdp.produit_id)
+        cdp_list = self.get_list_cdp(self.cdp)
         cdp_list.sort(key=lambda x: x.reseau)
         for cdp in cdp_list :
             self.logger.info(f'traitment cdp {cdp.reseau} du produit {cdp.produit_id}')
