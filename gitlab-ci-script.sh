@@ -4,8 +4,8 @@
 # with --testu, run only the testu
 
 GIT_BASE="/builds/apic/apicvf_django"
-PLUGIN_VERSION="apicvf_django"
-PLUGIN_RUNTIME="/home/mfserv/var/plugins/${PLUGIN_VERSION}"
+PLUGIN_NAME="apicvf_django"
+PLUGIN_RUNTIME="/home/mfserv/var/plugins/${PLUGIN_NAME}"
 
 install()
 {
@@ -26,7 +26,7 @@ testu()
     coverage xml
 }
 
-cd ${GIT_BASE}/plugin/${PLUGIN_VERSION}/
+cd ${GIT_BASE}/${PLUGIN_NAME}/
 
 case "$1" in
 "--testu")
