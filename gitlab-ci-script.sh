@@ -29,7 +29,7 @@ testu()
     echo "-> A. Launch test (through coverage)"
     plugin_wrapper ${PLUGIN_NAME} coverage run manage.py test carto.tests
     echo "-> B. Launch coverage xml report"
-    coverage xml
+    plugin_wrapper ${PLUGIN_NAME} coverage xml
 }
 
 cd ${GIT_BASE}/${PLUGIN_NAME}/
