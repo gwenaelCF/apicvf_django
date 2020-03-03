@@ -2,6 +2,7 @@
 image: registry.gitlab.meteo.fr:80/metwork-plugins/docker_build/mfserv-gitlab-ci:2.4
 
 # Base PostgreSQL pour les tests unitaires Django
+# Host: postgres, port 5432
 services:
   - postgres:latest
 
@@ -16,8 +17,6 @@ variables:
   POSTGRES_DB: plugin_apicvf_base
   POSTGRES_USER: metwork
   POSTGRES_PASSWORD: metwork
-  POSTGRES_HOST: localhost
-  POSTGRES_PORT: 7432
 
 # Avant script
 .before_script_template: &prepare-env
@@ -31,35 +30,32 @@ unit-testing:
   stage: unittests
   <<: *prepare-env
   script:
-    - echo '1. Launch unittests + coverage'
+    - echo 'Launch unittests + coverage'
     - su -c "gitlab-ci-script.sh --testu" - mfserv
-    #- su - mfserv
-    # - su -c "mfserv.start" - mfserv
-    #- su -c "make release" - mfserv
-    #- plugins.install apicvf_django-*.metwork.mfserv.plugin
-    #- coverage run --source='carto' manage.py test carto.tests --keepdb
-    #- coverage xml
 
 # Scanne le code et envoi sur http://sonar.meteo.fr/dashboard?id=apic%3Acarto
 # Les étapes post 'sonar-scanner' servent à remonter le résultat de l'analyse à Gitlal CI/CD
 scan-sonar:
   stage: sonar
+  <<: *prepare-env
   script:
-    - echo '2. Launch Sonar'
-    - sonar-scanner
-    - export url=$(cat .scannerwork/report-task.txt | grep ceTaskUrl | cut -c11-)
-    - sleep 5s #Wait time for the report
-    - curl -k $url -o analysis.txt #store results in analysis.txt
-    - export status=$(cat analysis.txt | jq -r '.task.status') #Get the status as SUCCESS, CANCELED or FAILED
-    - export analysisId=$(cat analysis.txt | jq -r '.task.analysisId') #Get the analysis Id
-    - curl -k  http://sonar.meteo.fr/api/qualitygates/project_status?analysisId=$analysisId -o result.txt;
-    - export result=$(cat result.txt | jq -r '.projectStatus.status');
-    - if [ “$result” == “ERROR” ]; then echo -e 'SONAR RESULTS FAILED'; exit 1; fi
+    - echo 'Launch Sonar'
+    - su -c "gitlab-ci-script.sh --sonar" - mfserv
+    #- sonar-scanner
+    #- export url=$(cat .scannerwork/report-task.txt | grep ceTaskUrl | cut -c11-)
+    #- sleep 5s #Wait time for the report
+    #- curl -k $url -o analysis.txt #store results in analysis.txt
+    #- export status=$(cat analysis.txt | jq -r '.task.status') #Get the status as SUCCESS, CANCELED or FAILED
+    #- export analysisId=$(cat analysis.txt | jq -r '.task.analysisId') #Get the analysis Id
+    #- curl -k  http://sonar.meteo.fr/api/qualitygates/project_status?analysisId=$analysisId -o result.txt;
+    #- export result=$(cat result.txt | jq -r '.projectStatus.status');
+    #- if [ “$result” == “ERROR” ]; then echo -e 'SONAR RESULTS FAILED'; exit 1; fi
 
 # Constuction plugin
 build-artifacts:
   stage: build
+  <<: *prepare-env
   script:
-    - echo '3. Build plugin'
-    # TODO
+    - echo 'Build plugin'
+    - su -c "gitlab-ci-script.sh --build" - mfserv
     

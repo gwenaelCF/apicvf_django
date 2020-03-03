@@ -73,7 +73,7 @@ class GestionDossier:
 
     def trouve_fichier(self, pattern, recurs=False):
         """ trouve un fichier dans un dossier 
-            recurs = True si recherche recursive
+            recurs = True si recherche recursive !DANGEREUX!
         """
         if recurs:
             return self.path.rglob(pattern)
