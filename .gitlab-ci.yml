@@ -37,6 +37,7 @@ unit-testing:
 # Les étapes post 'sonar-scanner' servent à remonter le résultat de l'analyse à Gitlal CI/CD
 scan-sonar:
   stage: sonar
+  <<: *prepare-env
   script:
     - echo 'Launch Sonar'
     - su -c "gitlab-ci-script.sh --sonar" - mfserv
