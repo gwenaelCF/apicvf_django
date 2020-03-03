@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import re
 
 from django.db import models
@@ -73,7 +73,7 @@ class Produit(models.Model):
 class Cdp(models.Model):
     """ classe liant un fichier de grain:seuil pour un réseau à un produit """
     
-    name = models.CharField(max_length=60)
+    name = models.CharField(max_length=100)
     produit = models.ForeignKey(Produit, on_delete=models.PROTECT)
     reseau = models.DateTimeField()
     reception = models.DateTimeField()
@@ -86,9 +86,15 @@ class Cdp(models.Model):
     statut_diffusions = models.BooleanField(default=False)
     statut_acquitements =models.BooleanField(default=False)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['produit', 'reseau'], name='unique_reseau_par_produit')
+        ]
+
     @classmethod
     def create(cls, cdp_file):
         cdp = Cdp()
+        logger.debug(type(cdp_file.file))
         cdp.data = cdp_file.read()
         cdp.name = cdp_file.name
         # TODO regex en paramètres !!!
@@ -104,17 +110,23 @@ class Cdp(models.Model):
         # TODO add more checks on cdp
         reg_reseau = re.search('(\d{6}).(\d{6})',cdp.name)
         reseau = reg_reseau.group(2)+reg_reseau.group(1)
+        logger.debug(header[0])
         if header[0] != reseau :
+            logger.warning(f'{cdp.name} pb heure réseau')
             return None
-        cdp.reseau = datetime.strptime(header[0],'%Y%m%d%H%M')
+        cdp.reseau = datetime.strptime(header[0],'%Y%m%d%H%M').replace(tzinfo=timezone.utc)
         # TODO modif ce == 'V' qui fait mal aux yeux
         if cdp.produit.name[0]=='V':
             cdp.seuils_troncons = {l[0]:l[1] for l in data[1:int(header[1])+1]}
             cdp.seuils_grains = {l[0]:l[1] for l in data[int(header[1])+1:int(header[2])+int(header[1])+1]}
         else :
             cdp.seuils_grains = {l[0]:l[3] for l in data[1:int(header[1])+1]}
+        if re.search('.LATE$',cdp.name):
+            cdp.retard = True
         logger.info(f'{cdp.name} traité')
-        logger.debug(f'{len(cdp.seuils_grains)} {len(cdp.seuils_troncons)}')
+        logger.debug(type(cdp.data))
+        logger.debug(cdp.data)
+        logger.debug(f'grains :{len(cdp.seuils_grains)}, tronçons:{len(cdp.seuils_troncons)}')
         return cdp
 
 
