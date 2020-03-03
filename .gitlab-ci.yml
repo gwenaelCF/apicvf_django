@@ -1,11 +1,61 @@
-image: registry.gitlab.meteo.fr:80/metwork-plugins/docker_build/mfserv-gitlab-ci:2.3
+# Image Docker avec mfserv
+image: registry.gitlab.meteo.fr:80/metwork-plugins/docker_build/mfserv-gitlab-ci:2.4
 
+# Base PostgreSQL pour les tests unitaires Django
+# Host: postgres, port 5432
+services:
+  - postgres:latest
+
+# Étapes du pipeline
 stages:
+  - unittests
   - sonar
+  - build
 
-# scanne le code et envoi sur http://sonar.meteo.fr/dashboard?id=apic%3Adev
-# Les parametres de conf de sonar-scanner sont dans le dockerfile : RUN echo "sonar.host.url=${SONAR_HOST}" >> /opt/sonar-scanner/conf/sonar-scanner.properties
+# Variables pour la base PostgreSQL
+variables:
+  POSTGRES_DB: plugin_apicvf_base
+  POSTGRES_USER: metwork
+  POSTGRES_PASSWORD: metwork
+
+# Avant script
+.before_script_template: &prepare-env
+  before_script:
+    - cp gitlab-ci-script.sh /usr/local/bin/
+    - chmod +x /usr/local/bin/gitlab-ci-script.sh
+    - su - mfserv
+
+# Lance tests unitaires + couverture
+unit-testing:
+  stage: unittests
+  <<: *prepare-env
+  script:
+    - echo 'Launch unittests + coverage'
+    - su -c "gitlab-ci-script.sh --testu" - mfserv
+
+# Scanne le code et envoi sur http://sonar.meteo.fr/dashboard?id=apic%3Acarto
+# Les étapes post 'sonar-scanner' servent à remonter le résultat de l'analyse à Gitlal CI/CD
 scan-sonar:
   stage: sonar
+  <<: *prepare-env
   script:
-    - sonar-scanner
+    - echo 'Launch Sonar'
+    - su -c "gitlab-ci-script.sh --sonar" - mfserv
+    #- sonar-scanner
+    #- export url=$(cat .scannerwork/report-task.txt | grep ceTaskUrl | cut -c11-)
+    #- sleep 5s #Wait time for the report
+    #- curl -k $url -o analysis.txt #store results in analysis.txt
+    #- export status=$(cat analysis.txt | jq -r '.task.status') #Get the status as SUCCESS, CANCELED or FAILED
+    #- export analysisId=$(cat analysis.txt | jq -r '.task.analysisId') #Get the analysis Id
+    #- curl -k  http://sonar.meteo.fr/api/qualitygates/project_status?analysisId=$analysisId -o result.txt;
+    #- export result=$(cat result.txt | jq -r '.projectStatus.status');
+    #- if [ “$result” == “ERROR” ]; then echo -e 'SONAR RESULTS FAILED'; exit 1; fi
+
+# Constuction plugin
+build-artifacts:
+  stage: build
+  <<: *prepare-env
+  script:
+    - echo 'Build plugin'
+    - su -c "gitlab-ci-script.sh --build" - mfserv
+    
