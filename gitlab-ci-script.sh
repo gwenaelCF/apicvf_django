@@ -40,11 +40,37 @@ testu()
     plugin_wrapper ${PLUGIN_NAME} coverage report
 }
 
+sonar()
+{
+    # move to plugin installed directory
+    cd ${PLUGIN_RUNTIME}
+    
+    # change the path of the sources to match the sources of the project
+    sed -i "s#/home/mfserv/var/plugins/${PLUGIN_NAME}/##g" coverage.xml
+    
+    # launch sonar-scanner
+    sonar-scanner
+    
+    # extract result
+    export url=$(cat .scannerwork/report-task.txt | grep ceTaskUrl | cut -c11-)
+    sleep 5s #Wait time for the report
+    curl -k $url -o analysis.txt #store results in analysis.txt
+    export status=$(cat analysis.txt | jq -r '.task.status') #Get the status as SUCCESS, CANCELED or FAILED
+    export analysisId=$(cat analysis.txt | jq -r '.task.analysisId') #Get the analysis Id
+    curl -k  http://sonar.meteo.fr/api/qualitygates/project_status?analysisId=$analysisId -o result.txt;
+    export result=$(cat result.txt | jq -r '.projectStatus.status');
+    if [ “$result” == “ERROR” ]; then echo -e 'SONAR RESULTS FAILED'; exit 1; fi
+
+}
+
 cd ${GIT_BASE}/${PLUGIN_NAME}/
 
 case "$1" in
 "--testu")
     testu
+    ;;
+"--sonar")
+    sonar
     ;;
 *)
 	testu
