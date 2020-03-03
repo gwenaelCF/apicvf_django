@@ -53,7 +53,8 @@ scan-sonar:
 # Constuction plugin
 build-artifacts:
   stage: build
+  <<: *prepare-env
   script:
     - echo 'Build plugin'
-    # TODO
+    - su -c "gitlab-ci-script.sh --build" - mfserv
     
