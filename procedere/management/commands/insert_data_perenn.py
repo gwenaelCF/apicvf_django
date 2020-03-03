@@ -34,7 +34,9 @@ class Command(BaseCommand):
         def insert_produits():
 
             for entete, prod in models.produit.ENTETES_PRODUITS.items():
-                new_prod = models.produit.Produit(shortname=prod, entete=entete, name=prod)
+                tz = models.produit.TIMEZONE[prod]
+                name = models.produit.PRODUITS[prod]
+                new_prod = models.produit.Produit(shortname=prod, entete=entete, name=name, timezone=tz)
                 reg = 'apic' if new_prod.name[0]=='A' else 'vf'
                 new_prod.regle = models.produit.Regle.objects.get(name=reg)
                 try :

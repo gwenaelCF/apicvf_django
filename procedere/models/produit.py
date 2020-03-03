@@ -6,12 +6,13 @@ from django.contrib.postgres.fields import JSONField
 
 from mflog import get_logger
 
-PRODUITS = [('AFR','APIC METROPOLE'),
-            ('VFR','VF METROPOLE'),
-            ('AAG','APIC ANTILLES GUYANE'),
-            ('AOI', 'APIC OCEAN INDIEN'),
-            ('ANC','APIC NOUVELLE CALEDONIE'),
-            ]
+PRODUITS = {
+            'AFR':'APIC METROPOLE',
+            'VFR':'VF METROPOLE',
+            'AAG':'APIC ANTILLES GUYANE',
+            'AOI':'APIC OCEAN INDIEN',
+            'ANC':'APIC NOUVELLE CALEDONIE',
+            }
 
 COUVERTURE_PRODUITS = {
                     'fr':['AFR', 'VFR'],
