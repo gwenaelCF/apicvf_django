@@ -1,4 +1,4 @@
-from procedere import utils
+from procedere import utils, models
 from datetime import datetime, timedelta
 from mflog import get_logger
 import os.path
@@ -23,9 +23,6 @@ class TraitementCarto():
     locale.setlocale(locale.LC_TIME, '')
     # delta time reseaux
     delta_t = -72
-    # fichiers de config
-    config_product_file = '/home/mfdata/config/produits.json'
-    config_grains_dept_file = '/home/mfdata/config/grains_dept.json'
     # regular expressions
     cdp_regex = '([A-Z]{4}\d{2}_[A-Z]{4})_(\d{2})(\d{4}).(\d{8})(\d{6})_(.*)\.(.*)\.LT$'
     vf_gr_regex = '^(.{5})(\d{1});(-?\d);(.*);(.*)$'
@@ -67,32 +64,26 @@ class TraitementCarto():
             # Check file name
             if not re.match(self.cdp_regex, original_cdp_filename):
                 raise NameError('Nom de fichier CDP invalide!') 
-            
-            # Load product configuration file
-            product_dict = {}
-            with open(self.config_product_file) as json_prod_file:
-                data_p = json.load(json_prod_file)
-                for p in data_p['produits']:
-                    prod = Produit(p['name'], p['origin'], p['prefix'], p['timezone'])
-                    product_dict[p['prefix']] = prod
-            
-            # Load grains/depts configuration file
-            with open(self.config_grains_dept_file) as json_gr_file:
-                data_gr = json.load(json_gr_file)
-                for dept, grains in data_gr.items():
-                    for grain in grains:
-                        # FIXME : warning! added missing '0'
-                        grain_6d = str(grain) + '0'
-                        self.grain_dept_dict[grain_6d] = dept
-    
+                      
+            # Load grains/depts from database
+            for gr_dept in models.granularite.Grain.objects.all().values('insee','dept__insee'):
+                gr_insee = gr_dept.get('insee')
+                gr_dept_insee = gr_dept.get('dept__insee')
+                # FIXME : warning! added missing '0'
+                grain_6d = str(gr_insee) + '0'
+                self.grain_dept_dict[grain_6d] = gr_dept_insee
+
             # Extract prefix/reseau from cdp file
             cdp_prefix = re.search(self.cdp_regex, original_cdp_filename, re.IGNORECASE).group(1)
             cdp_reseau_hhmm = re.search(self.cdp_regex, original_cdp_filename, re.IGNORECASE).group(3)
             cdp_reseau_yyyymmdd = re.search(self.cdp_regex, original_cdp_filename, re.IGNORECASE).group(4)
             self.logger.info('Prefixe CDP : ' + cdp_prefix) 
-            
-            # Get product properties (from configuration)
-            product_for_file = product_dict[cdp_prefix]
+
+            # Load product from database
+            for p in models.produit.Produit.objects.filter(entete=cdp_prefix):
+                p_name = p.name.split()[0].lower() # apic/vf
+                p_origin = p.shortname[1:3].lower() # fr,oi,ag,nc
+                product_for_file = Produit(p_name, p_origin, p.entete, p.timezone)
              
             # Date/Time 
             cdp_time_reseau = cdp_reseau_yyyymmdd + cdp_reseau_hhmm
