@@ -39,15 +39,16 @@ scan-sonar:
   stage: sonar
   script:
     - echo 'Launch Sonar'
-    - sonar-scanner
-    - export url=$(cat .scannerwork/report-task.txt | grep ceTaskUrl | cut -c11-)
-    - sleep 5s #Wait time for the report
-    - curl -k $url -o analysis.txt #store results in analysis.txt
-    - export status=$(cat analysis.txt | jq -r '.task.status') #Get the status as SUCCESS, CANCELED or FAILED
-    - export analysisId=$(cat analysis.txt | jq -r '.task.analysisId') #Get the analysis Id
-    - curl -k  http://sonar.meteo.fr/api/qualitygates/project_status?analysisId=$analysisId -o result.txt;
-    - export result=$(cat result.txt | jq -r '.projectStatus.status');
-    - if [ “$result” == “ERROR” ]; then echo -e 'SONAR RESULTS FAILED'; exit 1; fi
+    - su -c "gitlab-ci-script.sh --sonar" - mfserv
+    #- sonar-scanner
+    #- export url=$(cat .scannerwork/report-task.txt | grep ceTaskUrl | cut -c11-)
+    #- sleep 5s #Wait time for the report
+    #- curl -k $url -o analysis.txt #store results in analysis.txt
+    #- export status=$(cat analysis.txt | jq -r '.task.status') #Get the status as SUCCESS, CANCELED or FAILED
+    #- export analysisId=$(cat analysis.txt | jq -r '.task.analysisId') #Get the analysis Id
+    #- curl -k  http://sonar.meteo.fr/api/qualitygates/project_status?analysisId=$analysisId -o result.txt;
+    #- export result=$(cat result.txt | jq -r '.projectStatus.status');
+    #- if [ “$result” == “ERROR” ]; then echo -e 'SONAR RESULTS FAILED'; exit 1; fi
 
 # Constuction plugin
 build-artifacts:
