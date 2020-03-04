@@ -52,6 +52,9 @@ testu()
     echo "-> B. Launch coverage xml report, and display it"
     plugin_wrapper ${PLUGIN_NAME} coverage xml
     plugin_wrapper ${PLUGIN_NAME} coverage report
+    
+    # Launch sonar
+    sonar
 }
 
 sonar()
