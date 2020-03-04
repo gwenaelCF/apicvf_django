@@ -66,7 +66,7 @@ sonar()
     sed -i "s#/home/mfserv/var/plugins/${PLUGIN_NAME}/##g" coverage.xml
     
     # launch sonar-scanner
-    sonar-scanner
+    /opt/sonar-scanner/bin/sonar-scanner
     
     # extract sonar result
     export url=$(cat .scannerwork/report-task.txt | grep ceTaskUrl | cut -c11-)
