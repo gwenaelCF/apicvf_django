@@ -2,9 +2,14 @@ from datetime import datetime, timedelta, timezone
 import io
 
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from mflog import get_logger
 
 from procedere.models import produit, granularite, etat
+from procedere.utils import GestionCdp
+from procedere.reception_cdp import reception_cdp
+from parameters import models as param
 
+logger=get_logger('gestion_retard')
 
 def create_cdp_late(prod, reseau):
 
@@ -20,13 +25,30 @@ def create_cdp_late(prod, reseau):
     texte = bytes(reseau+';'+str(len(liste_insee)), 'UTF-8')
     forma = ';' if prod.shortname.startswith('V') else ';;;'
     for i in liste_insee:
-        texte += bytes(i+forma+'-1','UTF-8')
+        texte += bytes(i+forma+'-1\n','UTF-8')
     brut = io.BytesIO(texte)
     return InMemoryUploadedFile(brut,
                                 None,name,
                                 '_io.BytesIO',brut.__sizeof__(),
                                 'UTF-8')
 
+
+def check_retard():
+    logger.info('début de la gestion des retards')
+    #chemin = param.get_value('app', 'chemin_cdp')
+    dnow = datetime.now(timezone.utc).replace(second=0, microsecond=0)
+    reseau = dnow - timedelta(minutes=dnow.minute %15)
+    logger.info(produit.Produit.objects.all())
+    for prod in produit.Produit.objects.all():
+        logger.info(f'{prod.name} in process')
+        cdp = produit.Cdp(produit=prod)
+        gestion = GestionCdp(cdp)
+        if not gestion.path.joinpath(reseau.strftime('%Y%m%d%H%M')).exists():
+            logger.info(f'{str(reseau)} de {prod.name} absent - traité en retard')
+            cdp_late = create_cdp_late(prod, reseau)
+            reception_cdp(cdp_late)
+        else :
+            logger.info(f'{str(reseau)} de {prod.name} trouvé, rien à faire')
 
 
 

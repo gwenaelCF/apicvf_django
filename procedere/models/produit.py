@@ -124,7 +124,7 @@ class Cdp(models.Model):
             cdp.seuils_grains = {l[0]:l[3] for l in data[1:int(header[1])+1]}
         if re.search('.LATE$',cdp.name):
             cdp.retard = True
-        logger.info(f'{cdp.name} traité')
+        logger.info(f'{cdp.name} créé')
         logger.debug(type(cdp.data))
         logger.debug(cdp.data)
         logger.debug(f'grains :{len(cdp.seuils_grains)}, tronçons:{len(cdp.seuils_troncons)}')

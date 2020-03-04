@@ -6,8 +6,8 @@ from datetime import datetime, timezone, timedelta
 from mflog import get_logger
 
 from procedere import models as pm
-from parameters import models as param
-from helpers.gestion_dossier import GestionDossier
+#from parameters import models as param
+from procedere.utils import GestionCdp
 from carto import traitement_carto as tc 
 
 def reception_cdp(dp):
@@ -22,36 +22,6 @@ def reception_cdp(dp):
 def am_i_master():
     #TODO real one - à basculer en util ?
     return True
-
-
-
-class GestionCdp(GestionDossier):
-    """
-        utilitaire de gestion des fichiers cdp en local
-    """
-    def __init__(self, cdp):
-        self.logger = get_logger('GestionDossier')
-        self.logger.debug(cdp.produit.name)
-        self.cdp = cdp
-        self.chemin = param.get_value('app', 'chemin_cdp')
-        self.produit = self.cdp.produit.name
-        self.current = Path('.')
-        self.path = Path(self.chemin, self.produit)
-        self.creer_chemin()
-        
-    @property
-    def path(self):
-        return self._path
-    @path.setter
-    def path(self, p):
-        if str(self.current.resolve().stem) in str(p.resolve()) :
-            self.logger.error("le chemin de l'app est interdit")
-            raise ValueError
-        self._path = Path(self.chemin, self.produit)
-
-    def creer_fichier(self):
-        return super().creer_fichier(self.cdp.reseau.strftime('%Y%m%d%H%M'), self.cdp.data)
-
 
 class TraitementsCdp(threading.Thread):
     """
