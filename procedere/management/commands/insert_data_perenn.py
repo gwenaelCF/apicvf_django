@@ -163,7 +163,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.NOTICE('insertion regles'))
             data = open(fileregle,'r')
             insert_regles(data)
-     
+
         if tout or produits:
             self.stdout.write(self.style.NOTICE('insertion produits'))
             insert_produits()

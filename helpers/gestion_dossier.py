@@ -71,7 +71,7 @@ class GestionDossier:
             self.logger.error(str(e))
             return False
 
-    def trouve_fichier(self, pattern, recurs=False):
+    def cherche_fichier(self, pattern, recurs=False):
         """ trouve un fichier dans un dossier 
             recurs = True si recherche recursive !DANGEREUX!
         """
@@ -79,3 +79,6 @@ class GestionDossier:
             return self.path.rglob(pattern)
         else :
             return self.path.glob(pattern)
+
+    def trouve_fichier(self, name):
+        return self.path.joinpath(name).exists()

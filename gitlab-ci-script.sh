@@ -1,8 +1,7 @@
 #!/bin/bash
 # gitlab-ci-script.sh [options]
-# by default run testu
-# with --testu, run only the testu
-# with --sonar, run only the sonar
+# by default run testu + sonar
+# with --testu_sonar, run testu + sonar
 # with --build, run only the build
 
 GIT_BASE="/builds/apic/"
@@ -39,7 +38,7 @@ testu()
     # install plugin
     install
 
-    # edit config
+    # edit settings.py
     cd ${PLUGIN_RUNTIME}/${PLUGIN_NAME}
     sed -i "s/'HOST':.*/'HOST': 'postgres',/" settings.py
     sed -i "s/'PORT':.*/'PORT': '5432',/" settings.py
@@ -48,7 +47,7 @@ testu()
     # launch tests + coverage
     cd ${PLUGIN_RUNTIME}
     echo "-> A. Launch test (through coverage)"
-    plugin_wrapper ${PLUGIN_NAME} coverage run manage.py test carto.tests
+    plugin_wrapper ${PLUGIN_NAME} -- coverage run --source='apicvf_django','epistola','procedere','carto','parameters' manage.py test
     echo "-> B. Launch coverage xml report, and display it"
     plugin_wrapper ${PLUGIN_NAME} coverage xml
     plugin_wrapper ${PLUGIN_NAME} coverage report
@@ -65,7 +64,7 @@ sonar()
     # coverage - change the path of the sources to match the sources of the project
     sed -i "s#/home/mfserv/var/plugins/${PLUGIN_NAME}/##g" coverage.xml
     
-    # launch sonar-scanner
+    # launch sonar-scanner (add -X for debug)
     /opt/sonar-scanner/bin/sonar-scanner
     
     # extract sonar result
@@ -90,11 +89,8 @@ build()
 cd ${GIT_BASE}/${PLUGIN_NAME}/
 
 case "$1" in
-"--testu")
+"--testu_sonar")
     testu
-    ;;
-"--sonar")
-    sonar
     ;;
 "--build")
     build

@@ -7,8 +7,9 @@ from mflog import get_logger
 
 from procedere import models as pm
 #from parameters import models as param
-from procedere.utils import GestionCdp
-from carto import traitement_carto as tc 
+from procedere.utils import GestionCdp, create_cdp
+from carto import traitement_carto as tc
+
 
 def reception_cdp(dp):
     """
@@ -19,9 +20,11 @@ def reception_cdp(dp):
     plat.start()
     return True
 
+
 def am_i_master():
-    #TODO real one - à basculer en util ?
+    # TODO real one - à basculer en util ?
     return True
+
 
 class TraitementsCdp(threading.Thread):
     """
@@ -29,13 +32,14 @@ class TraitementsCdp(threading.Thread):
         initiée par un cdp
     """
     logger = get_logger("thread traitement")
+
     def __init__(self, cdp, **kwargs):
         self.logger.debug("instanciation du thread")
         self.cdp = pm.produit.Cdp.create(cdp)
         super().__init__(**kwargs)
 
     def verif_reseau(self):
-        if self.cdp.reseau < self.reseau_courant :
+        if self.cdp.reseau < self.reseau_courant:
             return False
         return True
 
@@ -44,16 +48,21 @@ class TraitementsCdp(threading.Thread):
             sauvegarde et efface si plus de 72h
         """
         gestion = GestionCdp(self.cdp)
-        if list(gestion.trouve_fichier(self.cdp.reseau.strftime('%Y%m%d%H%M'))):
+        reseau_text = self.cdp.reseau.strftime('%Y%m%d%H%M')
+        self.logger.debug(
+            f'{reseau_text}, {gestion.trouve_fichier(reseau_text)}'
+        )
+        if gestion.trouve_fichier(self.cdp.reseau.strftime('%Y%m%d%H%M')):
             self.logger.info(f'{self.cdp.name} déjà sauvegardé')
             return False
         sortie = gestion.creer_fichier()
-        euthanasie = int((self.cdp.reseau - timedelta(hours=72)).strftime('%Y%m%d%H%M'))
+        euthanasie = int(
+            (self.cdp.reseau - timedelta(hours=72)).strftime('%Y%m%d%H%M'))
         for p in gestion.lister_fichiers():
-            if int(p.stem)<euthanasie:
+            if int(p.stem) < euthanasie:
                 gestion.efface_moissa(nom=p.stem)
         return sortie
-        
+
     def get_list_cdp(self):
         """
             articulation en les cdp non traités (d'après la base)
@@ -65,32 +74,58 @@ class TraitementsCdp(threading.Thread):
         reseau = self.reseau_courant - timedelta(minutes=15)
         while reseau >= self.reseau_courant - timedelta(hours=72):
             try:
+                # cdp en base ?
                 if pm.produit.Cdp.objects.filter(
-                                                produit_id=self.cdp.produit_id,
-                                                reseau=reseau
-                                                ).exists():
+                    produit_id=self.cdp.produit_id, reseau=reseau
+                ).exists():
                     cdp_prev = pm.produit.Cdp.objects.get(
-                                                produit_id=self.cdp.produit_id,
-                                                reseau=reseau
+                        produit_id=self.cdp.produit_id,
+                        reseau=reseau
+                    )
+                    self.logger.debug(f'{cdp_prev} en base')
+                    if not cdp_prev.statut_carto or not cdp_prev.statut_diffusions:
+                        cdp_a_traiter.append(cdp_prev)
+                    else:
+                        break
+                # alors en local ?
+                else:
+                    gestion = GestionCdp(self.cdp)
+                    if gestion.trouve_fichier(reseau.strftime('%Y%m%d%H%M')):
+                        cdp_buffer = create_cdp(self.cdp.produit,
+                                                reseau,
+                                                cdp=gestion.path.joinpath(
+                                                    reseau.strftime('%Y%m%d%H%M'))
                                                 )
-                else :
-                    pass
-                    #self.logger.warning(
-                        #f'cdp {reseau} du produit {self.cdp.produit.name} introuvable en base'
-                        #)
-                    
-
-            except Exception as e :            
+                        cdp_prev = pm.produit.Cdp.create(cdp_buffer)
+                        self.logger.debug(f'{cdp_prev} en local')
+                        if cdp_prev == None:
+                            self.logger.warning(
+                                f'cdp {reseau} du produit {self.cdp.produit.name} pas en base et impossible à créer'
+                            )
+                            break
+                        cdp_prev.save()
+                        cdp_a_traiter.append(cdp_prev)
+                    # ni en base, ni local, on ne peut rien faire (pupitreurs ?)
+                    else:
+                        self.logger.warning(
+                            f'cdp {reseau} du produit {self.cdp.produit.name} introuvable localement'
+                        )
+                        break
+            except Exception as e:
                 self.logger.warning(str(e))
 
             reseau -= timedelta(minutes=15)
-
-
+        self.logger.debug(cdp_a_traiter)
+        self.logger.debug([cdp.reseau for cdp in cdp_a_traiter])
         return cdp_a_traiter
 
     # méthodes ci-dessous en static car on part d'une liste de cdp
     @staticmethod
     def carto(cdp):
+        """
+            lance la carto
+            très loin
+        """
         carto_process = tc.TraitementCarto(cdp)
         return carto_process.process()
 
@@ -106,7 +141,6 @@ class TraitementsCdp(threading.Thread):
     def set_diffusions(cdp):
         pass
 
-
     def run(self):
         """
             fonction lancée en thread pour traiter le cdp arrivant 
@@ -114,60 +148,64 @@ class TraitementsCdp(threading.Thread):
         """
         self.logger.debug("démarrage du traitement")
         self.logger.debug("vérifications")
-        if self.cdp == None :
+        if self.cdp == None:
             self.logger.warning("cdp mal formé")
             return None
         dnow = datetime.now(timezone.utc).replace(second=0, microsecond=0)
         self.cdp.reception = dnow
-        self.reseau_courant = dnow - timedelta(minutes=dnow.minute %15)
-        if self.verif_reseau() == False :
+        self.reseau_courant = dnow - timedelta(minutes=dnow.minute % 15)
+        if self.verif_reseau() == False:
             self.logger.info("réseau en retard (déjà instancié à -1 ?)")
-            #return None ## décommenter cette ligne pour sortir du débug
+            # return None ## décommenter cette ligne pour sortir du débug
         if self.sauv_local() == False:
-            self.logger.warning(f"impossible de sauvegarder un cdp localement !\
-                         cdp {self.cdp.reseau} du produit {self.cdp.produit_id}")
+            self.logger.warning(
+                f"impossible de sauvegarder localement le cdp {self.cdp.reseau} du produit {self.cdp.produit.shortname}"
+            )
             return None
-        else :
+        else:
             self.logger.info(f"cdp {self.cdp.name} sauvegardé localement")
         if am_i_master() == False:
             self.logger.info("cdp reçu et pris en charge - Sensei s'en occupe")
             return None
-        try :
+        try:
             self.cdp.save()
             self.logger.info(f"cdp {self.cdp.name} sauvegardé en base")
         except Exception as e:
-            self.logger.warning("cdp {self.cdp.name} non sauvegardé en base !\n"+str(e))
+            self.logger.warning(
+                "cdp {self.cdp.name} non sauvegardé en base !\n"+str(e))
         self.logger.debug("démarrage de la boucle sur les cdp")
         cdp_list = self.get_list_cdp()
         cdp_list.sort(key=lambda x: x.reseau)
-        for cdp in cdp_list :
-            self.logger.info(f'traitment cdp {cdp.reseau} du produit {cdp.produit_id}')
-            if not cdp.statut_carto :
-                try :
+        for cdp in cdp_list:
+            self.logger.info(
+                f'traitment cdp {cdp.reseau} du produit {cdp.produit_id}')
+            if not cdp.statut_carto:
+                try:
                     if self.carto(cdp) == True:
                         cdp.statut_carto = True
                         cdp.save()
-                except :
-                    self.logger.warning(f'carto de {cdp.reseau} du produit {cdp.produit_id} a échoué')
+                except:
+                    self.logger.warning(
+                        f'carto de {cdp.reseau} du produit {cdp.produit_id} a échoué')
             if (not cdp.statut_diffusions) and (
                     cdp.reseau > self.reseau_courant - timedelta(hours=1)):
-                if not am_i_master() :
+                if not am_i_master():
                     break
-                try :
-                    if not cdp.statut_etats :
+                try:
+                    if not cdp.statut_etats:
                         self.set_etats(cdp)
-                except :
-                    self.logger.warning(f'ETATS de {cdp.reseau} du produit {cdp.produit_id} a échoué')
+                except:
+                    self.logger.warning(
+                        f'ETATS de {cdp.reseau} du produit {cdp.produit_id} a échoué')
                     return None
-                if not am_i_master() :
+                if not am_i_master():
                     break
-                try :
-                    if not cdp.statut_avertissements :
+                try:
+                    if not cdp.statut_avertissements:
                         self.set_avertissements(cdp)
-                except :
-                    self.logger.warning(f'AVERTISSEMENTS de {cdp.reseau} du produit {cdp.produit_id} a échoué')
-                #self.set_diffusions() !! à faire dans une autre requete
+                except:
+                    self.logger.warning(
+                        f'AVERTISSEMENTS de {cdp.reseau} du produit {cdp.produit_id} a échoué')
+                # self.set_diffusions() !! à faire dans une autre requete
 
         return True
-
-    
