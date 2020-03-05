@@ -42,7 +42,15 @@ class GestionCdp(GestionDossier):
 
 
 def create_cdp(prod, reseau, cdp_file=None):
-
+    """
+        renvoie un cdp comme uploadé
+        
+        prod -- produit désiré
+        reseau -- heure du réseau
+        cdp_file -- Path 
+                    si None, tout à seuil=-1, 
+                    sinon les données viennent du fichier
+    """
     reception = (reseau+timedelta(minutes=15)).strftime('%Y%m%d%H%M%S')
     reseau = reseau.strftime('%Y%m%d%H%M')
     
@@ -54,7 +62,8 @@ def create_cdp(prod, reseau, cdp_file=None):
                                 ).values_list('insee', flat=True)
         
         #TODO revoir le format en fonction des choix definitifs pour les CDP
-        texte = bytes(reseau+';'+str(len(liste_insee)), 'UTF-8')
+        troncons = ';0;' if prod.shortname.startswith('V') else ';'
+        texte = bytes(reseau+troncons+str(len(liste_insee)), 'UTF-8')
         forma = ';' if prod.shortname.startswith('V') else ';;;'
         for i in liste_insee:
             texte += bytes(i+forma+'-1\n','UTF-8')

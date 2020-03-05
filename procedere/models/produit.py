@@ -94,6 +94,10 @@ class Cdp(models.Model):
 
     @classmethod
     def create(cls, cdp_file):
+        """
+            retourne un object cdp à partir d'un fichier uploadé
+            attention : renvoie None pour les problèmes courants
+        """
         cdp = Cdp()
         logger.debug(type(cdp_file.file))
         cdp.data = cdp_file.read()
@@ -117,13 +121,14 @@ class Cdp(models.Model):
             return None
         cdp.reseau = datetime.strptime(header[0],'%Y%m%d%H%M').replace(tzinfo=timezone.utc)
         # TODO modif ce == 'V' qui fait mal aux yeux
-        if cdp.produit.name[0]=='V':
-            cdp.seuils_troncons = {l[0]:l[1] for l in data[1:int(header[1])+1]}
-            cdp.seuils_grains = {l[0]:l[1] for l in data[int(header[1])+1:int(header[2])+int(header[1])+1]}
-        else :
-            cdp.seuils_grains = {l[0]:l[3] for l in data[1:int(header[1])+1]}
         if re.search('.LATE$',cdp.name):
             cdp.retard = True
+        else :    
+            if cdp.produit.name[0]=='V':
+                cdp.seuils_troncons = {l[0]:l[1] for l in data[1:int(header[1])+1]}
+                cdp.seuils_grains = {l[0]:l[1] for l in data[int(header[1])+1:int(header[2])+int(header[1])+1]}
+            else :
+                cdp.seuils_grains = {l[0]:l[3] for l in data[1:int(header[1])+1]}
         logger.info(f'{cdp.name} créé')
         logger.debug(type(cdp.data))
         #logger.debug(cdp.data)

@@ -116,6 +116,10 @@ class TraitementsCdp(threading.Thread):
     # méthodes ci-dessous en static car on part d'une liste de cdp
     @staticmethod
     def carto(cdp):
+        """
+            lance la carto
+            très loin
+        """
         carto_process = tc.TraitementCarto(cdp)
         return carto_process.process()
 
