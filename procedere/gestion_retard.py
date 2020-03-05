@@ -37,7 +37,7 @@ def check_retard():
     logger.info('début de la gestion des retards')
     #chemin = param.get_value('app', 'chemin_cdp')
     dnow = datetime.now(timezone.utc).replace(second=0, microsecond=0)
-    reseau = dnow - timedelta(minutes=dnow.minute %15)
+    reseau = dnow - timedelta(minutes=15) -timedelta(minutes=dnow.minute %15)
     logger.info(produit.Produit.objects.all())
     for prod in produit.Produit.objects.all():
         logger.info(f'{prod.name} in process')

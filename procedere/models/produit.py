@@ -126,7 +126,7 @@ class Cdp(models.Model):
             cdp.retard = True
         logger.info(f'{cdp.name} créé')
         logger.debug(type(cdp.data))
-        logger.debug(cdp.data)
+        #logger.debug(cdp.data)
         logger.debug(f'grains :{len(cdp.seuils_grains)}, tronçons:{len(cdp.seuils_troncons)}')
         return cdp
 

@@ -75,9 +75,9 @@ class TraitementsCdp(threading.Thread):
                                                 )
                 else :
                     pass
-                    #self.logger.warning(
-                        #f'cdp {reseau} du produit {self.cdp.produit.name} introuvable en base'
-                        #)
+                    self.logger.info(
+                        f'cdp {reseau} du produit {self.cdp.produit.name} introuvable en base'
+                        )
                     
 
             except Exception as e :            
@@ -124,8 +124,9 @@ class TraitementsCdp(threading.Thread):
             self.logger.info("réseau en retard (déjà instancié à -1 ?)")
             #return None ## décommenter cette ligne pour sortir du débug
         if self.sauv_local() == False:
-            self.logger.warning(f"impossible de sauvegarder un cdp localement !\
-                         cdp {self.cdp.reseau} du produit {self.cdp.produit_id}")
+            self.logger.warning(
+                f"impossible de sauvegarder localement le cdp {self.cdp.reseau} du produit {self.cdp.produit.shortname}"
+                )
             return None
         else :
             self.logger.info(f"cdp {self.cdp.name} sauvegardé localement")
