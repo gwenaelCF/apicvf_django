@@ -1,3 +1,7 @@
+"""
+Traitement CARTO
+"""
+from parameters import models as param
 from procedere import utils, models
 from datetime import datetime, timedelta
 from mflog import get_logger
@@ -5,48 +9,39 @@ import os.path
 import locale
 import pytz
 import json
-import csv
 import re
 import os
-
-
 class TraitementCarto():
     """
-    Traitement CARTO
     Génération/Mise à jour des fichiers json pour la carto
     """
-
-    # FIXME : parameters to be put in param table
-    # json destination path
-    dest_path = '/var/www/static-carto/'
-    # locale (date in french)
-    locale.setlocale(locale.LC_TIME, '')
-    # delta time reseaux
-    delta_t = -72
-    # regular expressions
-    cdp_regex = '([A-Z]{4}\d{2}_[A-Z]{4})_(\d{2})(\d{4}).(\d{8})(\d{6})_(.*)\.(.*)\.LT$'
-    vf_gr_regex = '^(.{5})(\d{1});(-?\d);(.*);(.*)$'
-    vf_tr_regex = '^([^;]*);(-?\d)$'
-    apic_gr_regex_1 = '^(.{5})(\d{1});(.*);(.*);(-?\d);.*$'  # grain
-    apic_gr_regex_2 = '^(.{2});(-?\d);.*$'  # bilan dept
-    # data position in row
-    apic_pos_gr = 0
-    apic_pos_seuil = 3 
-    vf_pos_gr = 0
-    vf_pos_seuil = 1
-    # dictionary grain->dept
-    grain_dept_dict = {}
-
     def __init__(self, cdp, **kwargs):
         """
         Initialisation
         :param cdp: objet Cdp
         """
-        self.logger = get_logger("apicvf_django.carto")
+        # logger
+        self.logger = get_logger("carto")
+        # cdp object input file
         self.cdp = cdp
-        # dictionary dept->[seuils]
+        # dictionaries
         self.list_dept_seuil = {}
-       
+        self.grain_dept_dict = {}
+        # load parameters
+        self.dest_path = param.get_value('app', 'chemin_carto')
+        self.delta_t = int(param.get_value('app', 'carto_delta_t'))
+        self.cdp_regex = param.get_value('app', 'regex_cdp')
+        self.vf_gr_regex = param.get_value('app', 'regex_vf_gr')
+        self.vf_tr_regex = param.get_value('app', 'regex_vf_tr')
+        self.apic_gr_regex = param.get_value('app', 'regex_apic_gr')
+        self.apic_gr_regex_dept = param.get_value('app', 'regex_apic_gr_dept')
+        self.apic_pos_gr = int(param.get_value('app', 'regex_apic_pos_gr'))
+        self.apic_pos_seuil = int(param.get_value('app', 'regex_apic_pos_seuil'))
+        self.vf_pos_gr = int(param.get_value('app', 'regex_vf_pos_gr'))
+        self.vf_pos_seuil = int(param.get_value('app', 'regex_vf_pos_seuil'))
+        # locale (date in french)
+        locale.setlocale(locale.LC_TIME, '')
+
     def process(self):
         """
         Conversion du fichier CDP en fichiers json pour la cartographie sur le front
@@ -66,7 +61,7 @@ class TraitementCarto():
                 raise NameError('Nom de fichier CDP invalide!') 
                       
             # Load grains/depts from database
-            for gr_dept in models.granularite.Grain.objects.all().values('insee','dept__insee'):
+            for gr_dept in models.granularite.Grain.objects.all().values('insee', 'dept__insee'):
                 gr_insee = gr_dept.get('insee')
                 gr_dept_insee = gr_dept.get('dept__insee')
                 # FIXME : warning! added missing '0'
@@ -94,13 +89,13 @@ class TraitementCarto():
               
             # A. Process CDP
             self.logger.info("A. Processus CDP...")
-            cdp_status = self.processCdp(product_for_file)
+            cdp_status = self.process_cdp(product_for_file)
             if not cdp_status:
                 return False
             
             # B. Process list reseaux
             self.logger.info("B. Processus Reseaux...")
-            reseau_status = self.processReseaux(product_for_file)
+            reseau_status = self.process_reseaux(product_for_file)
             if not reseau_status:
                 return False
         
@@ -108,12 +103,12 @@ class TraitementCarto():
 
         except Exception as e:
             # Handle exceptions
-            raise Exception(str(e))
+            self.logger.error(e, exc_info=True)
             return False
         
         return True
 
-    def processCdp(self, product_for_file):
+    def process_cdp(self, product_for_file):
         """
         Conversion du fichier CDP (pour ce réseau) en fichier json
         :param product_for_file: objet Produit
@@ -136,7 +131,6 @@ class TraitementCarto():
             
             # Read CDP
             self.logger.info('Lecture du CDP...')
-            nb_grains = nb_troncons = 0
             header_nb_grains = header_nb_troncons = 0
             
             data = [l.decode('utf-8') for l in self.cdp.data.splitlines()]
@@ -192,7 +186,7 @@ class TraitementCarto():
         
         return True
 
-    def processReseaux(self, produit):
+    def process_reseaux(self, produit):
         """
         Création/mise à jour du fichier de réseau json pour ce produit
         :param prod: objet Produit
@@ -205,9 +199,7 @@ class TraitementCarto():
         
         try:
             # Define output json file name
-            provider = produit.name
-            origin = produit.origin 
-            output_filename = provider + '_' + origin + '_reseaux.json'
+            output_filename = produit.name + '_' + produit.origin + '_reseaux.json'
             self.logger.info('Fichier reseau : ' + output_filename)
             file_path = self.dest_path + output_filename
             
@@ -217,6 +209,8 @@ class TraitementCarto():
                 with open(file_path) as json_file:
                     data_json = json.load(json_file)
             
+            self.logger.info('Nombre de réseaux présents : ' + str(len(data_json['reseaux'])))
+
             # Check if reseau already exist (once or several), if yes delete           
             while i < len(data_json['reseaux']):
                 if(data_json['reseaux'][i]['date'] == produit.timestamp):
@@ -237,14 +231,13 @@ class TraitementCarto():
             for reseau in data_json['reseaux']:
                 if reseau['date'] > last_reseau:
                     last_reseau = reseau['date']
-            self.logger.info('Le dernier réseau est ' + last_reseau)
+            self.logger.info('Réseau le plus récent : ' + last_reseau)
             
             # Delete reseau older than 72h (compared to the most recent)
-            self.logger.info('Date de dernier réseau : ' + last_reseau)
             datereseau_utc = datetime.strptime(last_reseau, '%Y%m%d%H%M') 
-            datereseau_utc_delta_t = datereseau_utc + timedelta(hours=self.delta_t) 
+            datereseau_utc_delta_t = datereseau_utc - timedelta(hours=self.delta_t) 
             timestamp_delta_t = datereseau_utc_delta_t.strftime('%Y%m%d%H%M')
-            self.logger.info('Date de premier réseau : ' + timestamp_delta_t + ' (' + str(self.delta_t) + 'H)')
+            self.logger.info('Réseaux conservés jusqu\'à : ' + timestamp_delta_t + ' (' + str(self.delta_t) + 'H)')
             
             while j < len(data_json['reseaux']):
                 if(data_json['reseaux'][j]['date'] < timestamp_delta_t):
@@ -281,7 +274,7 @@ class TraitementCarto():
         # APIC
         if product_for_file.name == 'apic':
             # grain
-            if re.match(self.apic_gr_regex_1, row):
+            if re.match(self.apic_gr_regex, row):
                 data_json['communes'].append({'id':data_row[self.apic_pos_gr], 'c:':data_row[self.apic_pos_seuil]})
                 grain = str(data_row[self.apic_pos_gr])
                 seuil = int(data_row[self.apic_pos_seuil])
@@ -289,7 +282,7 @@ class TraitementCarto():
                 product_for_file.add_grain(seuil)
                 nb_elements["grain"] = nb_elements.get('grain') + 1
             # dept
-            elif re.match(self.apic_gr_regex_2, row):
+            elif re.match(self.apic_gr_regex_dept, row):
                 self.logger.warning('Ligne non traitée: "' + row + '"')
                 nb_elements["grain"] = nb_elements.get('grain') + 1
             else:
@@ -323,6 +316,7 @@ class TraitementCarto():
         else:
             raise Exception('En-tête csv : Heure reseau incohérente! ' + header_time + ' vs ' + cdp_time_reseau) 
 
+    @classmethod        
     def compute_date_fr(self, cdp_time_reseau, timezone):
         """
         Génération de la date au format 'Mercredi 05 Février à 17:30 Loc' en fonction de la timezone (UTC+x)

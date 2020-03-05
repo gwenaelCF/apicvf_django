@@ -12,7 +12,6 @@ class Application(models.Model):
 def get_value(classe, key):
     """ 
     retourne le paramètre demandé 
-    
     """
     if classe not in ['app', 'sys']:
         raise ValueError('classe doit être `app` ou `sys`')
@@ -20,4 +19,15 @@ def get_value(classe, key):
     
     return classe.objects.get(key=key).value
 
-
+def set_value(classe, key, value):
+    """ 
+    ajoute (ou MAJ) le paramètre
+    """
+    if classe not in ['app', 'sys']:
+        raise ValueError('classe doit être `app` ou `sys`')
+    classe = Application if classe=='app' else System
+    
+    # set value (or update if exist)
+    classe.objects.update_or_create(
+        key=key, defaults={'value': value}
+    )

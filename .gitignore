@@ -19,3 +19,4 @@ coverage.xml
 /.pydevproject
 procedere/migrations/*.py
 CHANGELOG*
+.vscode/settings.json

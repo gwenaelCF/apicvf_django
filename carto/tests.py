@@ -1,6 +1,7 @@
 import json
 import os
 
+from parameters import models as param
 from carto import traitement_carto as tc 
 from django.conf import settings
 from django.core import management
@@ -26,8 +27,6 @@ class CdpTestCase(TestCase):
     cdp_in_folder = '/carto/data/cdp_in/'
     # expected json folder  
     json_folder = '/carto/data/json/'
-    # json destination path
-    dest_path = '/var/www/static-carto/'
     
     @classmethod
     def setUpTestData(cls):
@@ -44,6 +43,11 @@ class CdpTestCase(TestCase):
         Default setUp
         '''
         self.logger = get_logger("apicvf_django.carto.tests")
+        # update json destination path for tests
+        param.set_value('app', 'chemin_carto', param.get_value('app', 'chemin_carto') + 'tests/')
+        # get json destination path
+        self.dest_path = param.get_value('app', 'chemin_carto')
+
 
     def test_cdp_main(self):
         '''

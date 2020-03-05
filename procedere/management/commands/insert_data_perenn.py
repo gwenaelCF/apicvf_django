@@ -1,3 +1,4 @@
+import parameters
 import csv
 import time
 import os
@@ -53,7 +54,7 @@ class Command(BaseCommand):
                 if int(reg.insee)<=9:
                     reg.metrop=False
                 liste_reg.append(reg)
-            models.granularite.Region.objects.bulk_create(liste_reg, batch_size=1000)
+            models.granularite.Region.objects.bulk_create(liste_reg, batch_size=1000, ignore_conflicts=True)
 
         def insert_dept(dicteur):
             liste_dept = []
@@ -65,7 +66,7 @@ class Command(BaseCommand):
                 dept.region=liste_reg.get(insee=d['reg'])
                 dept.metrop = dept.region.metrop
                 liste_dept.append(dept)
-            models.granularite.Dept.objects.bulk_create(liste_dept, batch_size=1000)
+            models.granularite.Dept.objects.bulk_create(liste_dept, batch_size=1000, ignore_conflicts=True)
 
         def insert_grain(dicteur):
             liste_grain = []
@@ -80,7 +81,7 @@ class Command(BaseCommand):
                         grain.dept =  liste_dept.get(insee=d['dep'])
                         grain.metrop = grain.dept.metrop
                     liste_grain.append(grain)
-            models.granularite.Grain.objects.bulk_create(liste_grain, batch_size=5000)
+            models.granularite.Grain.objects.bulk_create(liste_grain, batch_size=5000, ignore_conflicts=True)
 
 
         def insert_etat(dicteur):
@@ -115,14 +116,24 @@ class Command(BaseCommand):
                 dico_etat['dep'].extend(dept_temp)
 
             models.etat.EtatRegionProduit.objects.bulk_create(
-                                dico_etat['reg'], batch_size=1000)
+                                dico_etat['reg'], batch_size=1000, ignore_conflicts=True)
             models.etat.EtatDeptProduit.objects.bulk_create(
-                                dico_etat['dep'], batch_size=1000)
+                                dico_etat['dep'], batch_size=1000, ignore_conflicts=True)
             models.etat.EtatGrainProduit.objects.bulk_create(
-                                dico_etat['grain'], batch_size=5000)
+                                dico_etat['grain'], batch_size=5000, ignore_conflicts=True)
         
+        def insert_params(data_param):
+            '''
+            Insert parameters in database, taken in params.json
+            Value is updated if key already exist
+            '''
+            for param in serializers.deserialize('json',data_param):
+                parameters.models.Application.objects.update_or_create(
+                    key=param.object.key, defaults={'value': param.object.value}
+                )
 
-        allowed = ['regles','produits', 'grains' ,'etats', 'tout']
+        # MAIN
+        allowed = ['regles','produits', 'grains' ,'etats', 'params', 'tout']
 
         todo = options['todo']
         for td in options['todo']:
@@ -132,6 +143,7 @@ class Command(BaseCommand):
         produits = 'produits' in todo
         grains = 'grains' in todo
         etats = 'etats' in todo
+        params = 'params' in todo
         tout = 'tout' in todo
 
 
@@ -140,6 +152,7 @@ class Command(BaseCommand):
         if options['d']:
             filepath = os.path.join(path_procedere, options['d'])
         fileregle = os.path.join(filepath,'regles.json')
+        fileparam = os.path.join(filepath,'params.json')
         filereg = os.path.join(filepath,'region2019.csv')
         filedept = os.path.join(filepath,'departement2019.csv')
         filecom = os.path.join(filepath,'communes_all.csv')
@@ -150,7 +163,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.NOTICE('insertion regles'))
             data = open(fileregle,'r')
             insert_regles(data)
-
+     
         if tout or produits:
             self.stdout.write(self.style.NOTICE('insertion produits'))
             insert_produits()
@@ -190,6 +203,15 @@ class Command(BaseCommand):
                 insert_etat(dicteur)
             t_int5 = time.time()
             self.stdout.write(self.style.NOTICE(f'done in {t_int5-t_int4}'))
+        else:
+            t_int5 = time.time()
+
+        if tout or params:
+            self.stdout.write(self.style.NOTICE('insertion params'))
+            data_param = open(fileparam,'r')
+            insert_params(data_param)
+            t_int6 = time.time()
+            self.stdout.write(self.style.NOTICE(f'done in {t_int6-t_int5}'))
 
         t_fin = time.time()
         self.stdout.write(self.style.NOTICE(f'total secondes {t_fin-t_start}'))
