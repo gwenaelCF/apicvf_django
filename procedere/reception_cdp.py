@@ -7,7 +7,7 @@ from mflog import get_logger
 
 from procedere import models as pm
 #from parameters import models as param
-from procedere.utils import GestionCdp
+from procedere.utils import GestionCdp, create_cdp
 from carto import traitement_carto as tc 
 
 def reception_cdp(dp):
@@ -44,7 +44,11 @@ class TraitementsCdp(threading.Thread):
             sauvegarde et efface si plus de 72h
         """
         gestion = GestionCdp(self.cdp)
-        if list(gestion.trouve_fichier(self.cdp.reseau.strftime('%Y%m%d%H%M'))):
+        reseau_text = self.cdp.reseau.strftime('%Y%m%d%H%M')
+        self.logger.debug(
+                    f'{reseau_text}, {gestion.trouve_fichier(reseau_text)}'
+                    )
+        if gestion.trouve_fichier(self.cdp.reseau.strftime('%Y%m%d%H%M')):
             self.logger.info(f'{self.cdp.name} déjà sauvegardé')
             return False
         sortie = gestion.creer_fichier()
@@ -65,27 +69,48 @@ class TraitementsCdp(threading.Thread):
         reseau = self.reseau_courant - timedelta(minutes=15)
         while reseau >= self.reseau_courant - timedelta(hours=72):
             try:
+                # cdp en base ?
                 if pm.produit.Cdp.objects.filter(
-                                                produit_id=self.cdp.produit_id,
-                                                reseau=reseau
-                                                ).exists():
+                                        produit_id=self.cdp.produit_id,reseau=reseau
+                                        ).exists():
                     cdp_prev = pm.produit.Cdp.objects.get(
                                                 produit_id=self.cdp.produit_id,
                                                 reseau=reseau
                                                 )
+                    self.logger.debug(f'{cdp_prev} en base')
+                    if not cdp_prev.statut_carto or not cdp_prev.statut_diffusions:
+                        cdp_a_traiter.append(cdp_prev)
+                    else:
+                        break
+                # alors en local ?
                 else :
-                    pass
-                    self.logger.info(
-                        f'cdp {reseau} du produit {self.cdp.produit.name} introuvable en base'
+                    gestion = GestionCdp(self.cdp)
+                    if gestion.trouve_fichier(reseau.strftime('%Y%m%d%H%M')):
+                        cdp_buffer = create_cdp(self.cdp.produit, 
+                                                reseau, 
+                                                cdp=gestion.path.joinpath(reseau.strftime('%Y%m%d%H%M'))
+                                                )
+                        cdp_prev = pm.produit.Cdp.create(cdp_buffer)
+                        self.logger.debug(f'{cdp_prev} en local')
+                        if cdp_prev == None :
+                            self.logger.warning(
+                                f'cdp {reseau} du produit {self.cdp.produit.name} pas en base et impossible à créer'
+                            )
+                            break
+                        cdp_prev.save()
+                        cdp_a_traiter.append(cdp_prev)
+                    # ni en base, ni local, on ne peut rien faire (pupitreurs ?)
+                    else :
+                        self.logger.warning(
+                            f'cdp {reseau} du produit {self.cdp.produit.name} introuvable localement'
                         )
-                    
-
+                        break
             except Exception as e :            
                 self.logger.warning(str(e))
 
             reseau -= timedelta(minutes=15)
-
-
+        self.logger.debug(cdp_a_traiter)
+        self.logger.debug([cdp.reseau for cdp in cdp_a_traiter])
         return cdp_a_traiter
 
     # méthodes ci-dessous en static car on part d'une liste de cdp

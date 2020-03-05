@@ -7,6 +7,11 @@ from mflog import get_logger
 from helpers.gestion_dossier import GestionDossier
 from parameters import models as param
 
+from io import BytesIO
+from django.core.files.uploadedfile import InMemoryUploadedFile
+
+from procedere.models import produit, granularite, etat
+
 class GestionCdp(GestionDossier):
     """
         utilitaire de gestion des fichiers cdp en local
@@ -33,6 +38,33 @@ class GestionCdp(GestionDossier):
 
     def creer_fichier(self):
         return super().creer_fichier(self.cdp.reseau.strftime('%Y%m%d%H%M'), self.cdp.data)
+
+
+
+def create_cdp(prod, reseau, cdp_file=None):
+
+    reception = (reseau+timedelta(minutes=15)).strftime('%Y%m%d%H%M%S')
+    reseau = reseau.strftime('%Y%m%d%H%M')
+    
+    name = prod.entete + '_' +  reseau[6:] + '.' + reception + '_XXXXXXXXXXX_XXXXX.XXX.LT'
+    if not cdp_file :
+        name += '.LATE'
+        liste_insee = granularite.Grain.objects.filter(
+                                id__in=prod.etatgrainproduit_set.values_list('grain_id', flat=True)
+                                ).values_list('insee', flat=True)
+        
+        #TODO revoir le format en fonction des choix definitifs pour les CDP
+        texte = bytes(reseau+';'+str(len(liste_insee)), 'UTF-8')
+        forma = ';' if prod.shortname.startswith('V') else ';;;'
+        for i in liste_insee:
+            texte += bytes(i+forma+'-1\n','UTF-8')
+    else :
+        texte = open(cdp_file,'rb').read()
+    brut = BytesIO(texte)
+    return InMemoryUploadedFile(brut,
+                                None,name,
+                                '_io.BytesIO',brut.__sizeof__(),
+                                'UTF-8')
 
 
 #
