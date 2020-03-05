@@ -8,9 +8,11 @@ from mflog import get_logger
 #import cdp.models
 # Create your views here.
 
+
 def index(request):
     resp = f"Hello, world. You're at the procedere index."
     return HttpResponse(resp)
+
 
 @csrf_exempt
 def cdp(request):
@@ -18,14 +20,14 @@ def cdp(request):
         logger = get_logger("requete_cdp")
         logger.debug("avant thread")
         dp = request.FILES['file']
-        #lancement des traitements
+        # lancement des traitements
         reception_cdp.reception_cdp(dp)
         logger.debug("après lancement thread")
         response_content = dp.name
         return HttpResponse(
             response_content
-            )
-    else :
+        )
+    else:
         response = HttpResponse()
         response.status_code = 405
         response.write("method POST required")

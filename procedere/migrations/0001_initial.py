@@ -17,7 +17,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Dept',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('insee', models.CharField(max_length=6, unique=True)),
                 ('tncc', models.SmallIntegerField(null=True)),
                 ('ncc', models.CharField(max_length=200, null=True)),
@@ -33,7 +34,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Region',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('insee', models.CharField(max_length=6, unique=True)),
                 ('tncc', models.SmallIntegerField(null=True)),
                 ('ncc', models.CharField(max_length=200, null=True)),
@@ -49,7 +51,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Regle',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=40, null=True, unique=True)),
                 ('tableau', django.contrib.postgres.fields.jsonb.JSONField(default=dict)),
                 ('dt', models.DurationField(null=True)),
@@ -58,20 +61,23 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Produit',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('shortname', models.CharField(max_length=3, unique=True)),
                 ('name', models.CharField(max_length=40)),
                 ('entete', models.CharField(max_length=12, unique=True)),
                 ('grains', django.contrib.postgres.fields.jsonb.JSONField(default=dict)),
                 ('couverture', django.contrib.postgres.fields.jsonb.JSONField(default=dict)),
                 ('timezone', models.CharField(max_length=40)),
-                ('regle', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='procedere.Regle')),
+                ('regle', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT, to='procedere.Regle')),
             ],
         ),
         migrations.CreateModel(
             name='Grain',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('insee', models.CharField(max_length=6, unique=True)),
                 ('tncc', models.SmallIntegerField(null=True)),
                 ('ncc', models.CharField(max_length=200, null=True)),
@@ -80,7 +86,8 @@ class Migration(migrations.Migration):
                 ('metrop', models.BooleanField(default=True)),
                 ('arr', models.CharField(max_length=4, null=True)),
                 ('cp', models.CharField(max_length=6, null=True)),
-                ('dept', models.ForeignKey(null=True, on_delete=django.db.models.deletion.PROTECT, to='procedere.Dept')),
+                ('dept', models.ForeignKey(
+                    null=True, on_delete=django.db.models.deletion.PROTECT, to='procedere.Dept')),
             ],
             options={
                 'abstract': False,
@@ -89,14 +96,18 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='EtatRegionProduit',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('t_2', models.SmallIntegerField(default=0)),
                 ('t_1', models.SmallIntegerField(default=0)),
                 ('t0', models.SmallIntegerField(default=0)),
                 ('reseau', models.DateTimeField(null=True)),
-                ('abo_array', django.contrib.postgres.fields.ArrayField(base_field=models.IntegerField(blank=True), blank=True, null=True, size=None)),
-                ('produit', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='procedere.Produit')),
-                ('reg', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='procedere.Region')),
+                ('abo_array', django.contrib.postgres.fields.ArrayField(
+                    base_field=models.IntegerField(blank=True), blank=True, null=True, size=None)),
+                ('produit', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT, to='procedere.Produit')),
+                ('reg', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT, to='procedere.Region')),
             ],
             options={
                 'abstract': False,
@@ -105,13 +116,16 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='EtatProduit',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('t_2', models.SmallIntegerField(default=0)),
                 ('t_1', models.SmallIntegerField(default=0)),
                 ('t0', models.SmallIntegerField(default=0)),
                 ('reseau', models.DateTimeField(null=True)),
-                ('abo_array', django.contrib.postgres.fields.ArrayField(base_field=models.IntegerField(blank=True), blank=True, null=True, size=None)),
-                ('produit', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='procedere.Produit')),
+                ('abo_array', django.contrib.postgres.fields.ArrayField(
+                    base_field=models.IntegerField(blank=True), blank=True, null=True, size=None)),
+                ('produit', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT, to='procedere.Produit')),
             ],
             options={
                 'abstract': False,
@@ -120,14 +134,18 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='EtatGrainProduit',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('t_2', models.SmallIntegerField(default=0)),
                 ('t_1', models.SmallIntegerField(default=0)),
                 ('t0', models.SmallIntegerField(default=0)),
                 ('reseau', models.DateTimeField(null=True)),
-                ('abo_array', django.contrib.postgres.fields.ArrayField(base_field=models.IntegerField(blank=True), blank=True, null=True, size=None)),
-                ('grain', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='procedere.Grain')),
-                ('produit', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='procedere.Produit')),
+                ('abo_array', django.contrib.postgres.fields.ArrayField(
+                    base_field=models.IntegerField(blank=True), blank=True, null=True, size=None)),
+                ('grain', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT, to='procedere.Grain')),
+                ('produit', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT, to='procedere.Produit')),
             ],
             options={
                 'abstract': False,
@@ -136,14 +154,18 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='EtatDeptProduit',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('t_2', models.SmallIntegerField(default=0)),
                 ('t_1', models.SmallIntegerField(default=0)),
                 ('t0', models.SmallIntegerField(default=0)),
                 ('reseau', models.DateTimeField(null=True)),
-                ('abo_array', django.contrib.postgres.fields.ArrayField(base_field=models.IntegerField(blank=True), blank=True, null=True, size=None)),
-                ('dept', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='procedere.Dept')),
-                ('produit', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='procedere.Produit')),
+                ('abo_array', django.contrib.postgres.fields.ArrayField(
+                    base_field=models.IntegerField(blank=True), blank=True, null=True, size=None)),
+                ('dept', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT, to='procedere.Dept')),
+                ('produit', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT, to='procedere.Produit')),
             ],
             options={
                 'abstract': False,
@@ -152,24 +174,29 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='dept',
             name='region',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.PROTECT, to='procedere.Region'),
+            field=models.ForeignKey(
+                null=True, on_delete=django.db.models.deletion.PROTECT, to='procedere.Region'),
         ),
         migrations.CreateModel(
             name='Cdp',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=60)),
                 ('reseau', models.DateTimeField()),
                 ('reception', models.DateTimeField()),
-                ('seuils_grains', django.contrib.postgres.fields.jsonb.JSONField(default=dict)),
-                ('seuils_troncons', django.contrib.postgres.fields.jsonb.JSONField(default=dict, null=True)),
+                ('seuils_grains',
+                 django.contrib.postgres.fields.jsonb.JSONField(default=dict)),
+                ('seuils_troncons', django.contrib.postgres.fields.jsonb.JSONField(
+                    default=dict, null=True)),
                 ('retard', models.BooleanField(default=False)),
                 ('statut_carto', models.BooleanField(default=False)),
                 ('statut_etats', models.BooleanField(default=False)),
                 ('statut_avertissements', models.BooleanField(default=False)),
                 ('statut_diffusions', models.BooleanField(default=False)),
                 ('statut_acquitements', models.BooleanField(default=False)),
-                ('produit', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='procedere.Produit')),
+                ('produit', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT, to='procedere.Produit')),
             ],
         ),
     ]

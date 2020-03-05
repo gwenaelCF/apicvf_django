@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class Granularite(models.Model):
     """ classe mère reprenant les info INSEE """
     insee = models.CharField(max_length=6, unique=True)
@@ -12,14 +13,17 @@ class Granularite(models.Model):
     class Meta:
         abstract = True
 
+
 class Region(Granularite):
     """ ensemble de departements """
     cheflieu = models.CharField(max_length=200, null=True)
-    
+
+
 class Dept(Granularite):
     """ ensemble de grains """
     region = models.ForeignKey(Region, on_delete=models.PROTECT, null=True)
     cheflieu = models.CharField(max_length=200, null=True)
+
 
 class Grain(Granularite):
     """ plus petit référentiel géopgraphique ayant un seuil d'avertissement """
