@@ -103,7 +103,7 @@ class Cdp(models.Model):
         """
         cdp = Cdp()
         logger.debug(type(cdp_file.file))
-        cdp.data = cdp_file.read()
+        cdp.brut = cdp_file.read()
         cdp.name = cdp_file.name
         # TODO regex en paramètres !!!
         try:
@@ -112,7 +112,7 @@ class Cdp(models.Model):
         except:
             logger.warning(f'cdp.name ne correspond pas à un produit')
             return None
-        data = [l.decode('utf-8').split(';') for l in cdp.data.splitlines()]
+        data = [l.decode('utf-8').split(';') for l in cdp.brut.splitlines()]
         # cdp.nom_produit = ENTETES_PRODUITS[cdp.name[:11]]
         header = data[0]
         logger.debug(re.search('.(\d{12})', cdp.name).group(1))
@@ -128,6 +128,8 @@ class Cdp(models.Model):
         # TODO modif ce == 'V' qui fait mal aux yeux
         if re.search('.LATE$', cdp.name):
             cdp.retard = True
+            cdp.data = {insee:-1 for insee in qs_etat.values_list(
+                                                    grain__insee, flat=True)}
         else:
             if cdp.produit.name[0] == 'V':
                 cdp.seuils_troncons = {l[0]: l[1]
@@ -138,7 +140,6 @@ class Cdp(models.Model):
                 cdp.seuils_grains = {l[0]: l[3]
                                      for l in data[1:int(header[1])+1]}
         logger.info(f'{cdp.name} créé')
-        logger.debug(type(cdp.data))
         # logger.debug(cdp.data)
         logger.debug(
             f'grains :{len(cdp.seuils_grains)}, tronçons:{len(cdp.seuils_troncons)}')

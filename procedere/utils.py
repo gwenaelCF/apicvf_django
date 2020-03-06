@@ -40,7 +40,7 @@ class GestionCdp(GestionDossier):
         self._path = Path(self.chemin, self.produit)
 
     def creer_fichier(self):
-        return super().creer_fichier(self.cdp.reseau.strftime('%Y%m%d%H%M'), self.cdp.data)
+        return super().creer_fichier(self.cdp.reseau.strftime('%Y%m%d%H%M'), self.cdp.brut)
 
 
 def create_cdp(prod, reseau, cdp_file=None):

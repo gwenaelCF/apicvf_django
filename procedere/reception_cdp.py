@@ -7,8 +7,10 @@ from mflog import get_logger
 
 from procedere import models as pm
 #from parameters import models as param
-from procedere.utils import GestionCdp, create_cdp
+from procedere.utils import GestionCdp, create_cdp, modif_seuils_batch
 from carto import traitement_carto as tc
+from helpers import timing
+
 
 
 def reception_cdp(dp):
@@ -76,12 +78,12 @@ class TraitementsCdp(threading.Thread):
             try:
                 # cdp en base ?
                 if pm.produit.Cdp.objects.filter(
-                    produit_id=self.cdp.produit_id, reseau=reseau
-                ).exists():
+                                    produit_id=self.cdp.produit_id, reseau=reseau
+                                    ).exists():
                     cdp_prev = pm.produit.Cdp.objects.get(
-                        produit_id=self.cdp.produit_id,
-                        reseau=reseau
-                    )
+                                        produit_id=self.cdp.produit_id,
+                                        reseau=reseau
+                                        )
                     self.logger.debug(f'{cdp_prev} en base')
                     if not cdp_prev.statut_carto or not cdp_prev.statut_diffusions:
                         cdp_a_traiter.append(cdp_prev)
@@ -119,7 +121,7 @@ class TraitementsCdp(threading.Thread):
         self.logger.debug([cdp.reseau for cdp in cdp_a_traiter])
         return cdp_a_traiter
 
-    # méthodes ci-dessous en static car on part d'une liste de cdp
+    # méthodes ci-dessous en static/class car on part d'une liste de cdp
     @staticmethod
     def carto(cdp):
         """
@@ -129,9 +131,24 @@ class TraitementsCdp(threading.Thread):
         carto_process = tc.TraitementCarto(cdp)
         return carto_process.process()
 
-    @staticmethod
-    def set_etats(cdp):
-        pass
+    @classmethod
+    def set_etats(cls, cdp):
+        seuils = {0: [], -1: [], 1: [], 2: []}
+        with timing.Timer() as t:
+            cls.logger.debug(f'création dico des seuils de grains')
+            qs_etat = pm.etat.EtatGrainProduit.objects.filter(
+                                                    produit_id=cdp.produit_id)
+            if cdp.retard:
+                seuils[-1]=[insee for insee in cdp.data.keys()]
+            else:
+                for insee, seuil in cdp.seuils_grains.items():
+                    seuils[int(seuil)].append(insee)
+            cls.logger.debug(f'update (état)grains en base')
+            for key in seuils.keys():
+                modif_seuils_batch(qs_etat.filter(grain__insee__in=seuils[key]),
+                                    key
+                                    )
+        cls.logger.info(f'update etats fait en {t.interval}')
 
     @staticmethod
     def set_avertissements(cdp):
@@ -184,28 +201,19 @@ class TraitementsCdp(threading.Thread):
                     if self.carto(cdp) == True:
                         cdp.statut_carto = True
                         cdp.save()
-                except:
+                except Exception as e:
+                    self.logger.warning(str(e))
                     self.logger.warning(
                         f'carto de {cdp.reseau} du produit {cdp.produit_id} a échoué')
             if (not cdp.statut_diffusions) and (
-                    cdp.reseau > self.reseau_courant - timedelta(hours=1)):
+                    cdp.reseau > self.reseau_courant - timedelta(hours=1)
+                                        ) and am_i_master():
+                if not cdp.statut_etats:
+                    self.set_etats(cdp)
                 if not am_i_master():
                     break
-                try:
-                    if not cdp.statut_etats:
-                        self.set_etats(cdp)
-                except:
-                    self.logger.warning(
-                        f'ETATS de {cdp.reseau} du produit {cdp.produit_id} a échoué')
-                    return None
-                if not am_i_master():
-                    break
-                try:
-                    if not cdp.statut_avertissements:
-                        self.set_avertissements(cdp)
-                except:
-                    self.logger.warning(
-                        f'AVERTISSEMENTS de {cdp.reseau} du produit {cdp.produit_id} a échoué')
+                if not cdp.statut_avertissements:
+                    self.set_avertissements(cdp)
                 # self.set_diffusions() !! à faire dans une autre requete
 
         return True
