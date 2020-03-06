@@ -14,10 +14,12 @@ from helpers import *
 '''
 Tests pour le processsus de génération des json pour la carto
 Usage: 
-- 1. Le fichier CDP à tester doit être placé sous carto/data/cdp_in
-- 2. Les fichiers json (à comparer avec ceux générés) doivent être placés sous carto/data/json
-- 3. Le fichier testing_data.json doit être mis à jour pour associer le fichier cdp avec les fichiers json résultats
-Note: Les CDPs sont traités dans l'ordre du fichier testing_data.json
+- 1. Le fichier testing_data.json doit être mis à jour pour associer le fichier cdp avec les fichiers json résultats,
+"cdp" pour le fichier json propre au cdp, "reseaux" pour le fichier avec la liste des reseaux
+"reseaux_diff" indique le fichier reseau qui servira de base de comparaison au moment de l'exécution du test
+Important : Les CDPs seront traités dans l'ordre du fichier testing_data.json
+- 2. Le fichier CDP à tester doit être placé sous carto/data/cdp_in
+- 3. Les fichiers json (à comparer avec ceux générés) doivent être placés sous carto/data/json
 ''' 
 class CdpTestCase(TestCase):
   
@@ -45,9 +47,10 @@ class CdpTestCase(TestCase):
         self.logger = get_logger("apicvf_django.carto.tests")
         # update json destination path for tests
         param.set_value('app', 'chemin_carto', param.get_value('app', 'chemin_carto') + 'tests/')
-        # get json destination path
+        # get json (test) destination path
         self.dest_path = param.get_value('app', 'chemin_carto')
-
+        # delete files
+        self.purge_directory(self.dest_path)
 
     def test_cdp_main(self):
         '''
@@ -61,11 +64,11 @@ class CdpTestCase(TestCase):
                 # subTest permet d'exécuter l'intégralité des tests
                 with self.subTest(cdp=cdp,results=results):
                     self.logger.info(f'Lancement du test pour le fichier {cdp}')
-                    self.launch_cdp(cdp,results['cdp'],results['reseaux'])  
+                    self.launch_cdp(cdp,results['cdp'],results['reseaux'],results['reseaux_diff'])  
 
         self.logger.info(f'Fin des tests')        
     
-    def launch_cdp(self, cdp, json_result_cdp, json_result_reseau):
+    def launch_cdp(self, cdp, json_result_cdp, json_result_reseau, json_expected_result_reseaux):
         '''
         Lancement du test pour un fichier CDP
         :param cdp: cdp file
@@ -76,7 +79,7 @@ class CdpTestCase(TestCase):
         cdp_in_file_path = settings.BASE_DIR + self.cdp_in_folder + cdp
         # JSON expected results
         json_expected_result_cdp_file_path = settings.BASE_DIR + self.json_folder + json_result_cdp
-        json_expected_result_reseaux_file_path = settings.BASE_DIR + self.json_folder + json_result_reseau
+        json_expected_result_reseaux_file_path = settings.BASE_DIR + self.json_folder + json_expected_result_reseaux
         # JSON real result
         json_result_cdp_file_path = self.dest_path + json_result_cdp
         json_result_reseaux_file_path = self.dest_path + json_result_reseau
@@ -131,3 +134,17 @@ class CdpTestCase(TestCase):
             cdpFile.name = os.path.basename(cdp_in_file_path)
             cdp = pm.produit.Cdp.create(cdpFile)
         return cdp
+
+    def purge_directory(self, dir):
+        '''
+        Purge json result test directory
+        '''
+        self.logger.info(f'Purge du répertoire {dir}') 
+        for root, dirs, files in os.walk(dir):
+            for f in files:
+                file_path = os.path.join(root, f)
+                try:
+                    self.logger.debug(f'Suppression du fichier {f}') 
+                    os.unlink(file_path)
+                except Exception as e:
+                    self.logger.warning('Failed to delete %s. Reason: %s' % (file_path, e))
