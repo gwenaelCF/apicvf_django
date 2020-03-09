@@ -1,1 +1,1 @@
-*/15 * * * * {{MFSERV_HOME}}/bin/cronwrap.sh -- plugin_wrapper apicvf_django -- {{MFMODULE_RUNTIME_HOME}}/apicvf_django/manage.py check_retard >>{{MFMODULE_RUNTIME_HOME}}/log/cronlog 2>&1
+* * * * * {{MFSERV_HOME}}/bin/cronwrap.sh -- plugin_wrapper apicvf_django -- {{MFSERV_CURRENT_PLUGIN_DIR}}/manage.py check_retard >>{{MFMODULE_RUNTIME_HOME}}/log/cronlog 2>&1
