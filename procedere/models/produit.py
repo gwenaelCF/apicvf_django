@@ -5,6 +5,7 @@ from django.db import models
 from django.contrib.postgres.fields import JSONField
 
 from mflog import get_logger
+from procedere.models import etat, granularite
 
 PRODUITS = {
     'AFR': 'APIC METROPOLE',
@@ -110,7 +111,7 @@ class Cdp(models.Model):
             cdp.produit = Produit.objects.get(
                 shortname=ENTETES_PRODUITS[cdp.name[:11]])
         except:
-            logger.warning(f'cdp.name ne correspond pas à un produit')
+            logger.warning(f'{cdp.name} ne correspond pas à un produit connu')
             return None
         data = [l.decode('utf-8').split(';') for l in cdp.brut.splitlines()]
         # cdp.nom_produit = ENTETES_PRODUITS[cdp.name[:11]]
@@ -126,12 +127,20 @@ class Cdp(models.Model):
         cdp.reseau = datetime.strptime(
             header[0], '%Y%m%d%H%M').replace(tzinfo=timezone.utc)
         # TODO modif ce == 'V' qui fait mal aux yeux
+        total_ligne = int(header[1])
+        if cdp.produit.shortname[0] == 'V':
+            total_ligne += int(header[2])
+        if total_ligne != len(data) - 1:
+            logger.warning(f'{cdp.name} mal formé (nbr de lignes)')
+            return None            
+        qs_etat = etat.EtatGrainProduit.objects.filter(
+                                                    produit_id=cdp.produit_id)
+        list_insee = list(qs_etat.values_list('grain__insee', flat=True))
         if re.search('.LATE$', cdp.name):
             cdp.retard = True
-            cdp.data = {insee:-1 for insee in qs_etat.values_list(
-                                                    grain__insee, flat=True)}
+            cdp.data = {insee:-1 for insee in list_insee}
         else:
-            if cdp.produit.name[0] == 'V':
+            if cdp.produit.shortname[0] == 'V':
                 cdp.seuils_troncons = {l[0]: l[1]
                                        for l in data[1:int(header[1])+1]}
                 cdp.seuils_grains = {l[0]: l[1] for l in data[int(
@@ -139,6 +148,10 @@ class Cdp(models.Model):
             else:
                 cdp.seuils_grains = {l[0]: l[3]
                                      for l in data[1:int(header[1])+1]}
+        for dif in [x for x in set(cdp.seuils_grains.keys()) if x not in set(list_insee)]:
+            logger.warning(
+f'{cdp.name} contient code {dif} inconnu (seuil: {cdp.seuils_grains.pop(dif)})')
+            # ATTENTION le code insee est retiré du dico dans le warning
         logger.info(f'{cdp.name} créé')
         # logger.debug(cdp.data)
         logger.debug(

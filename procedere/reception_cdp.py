@@ -172,8 +172,8 @@ class TraitementsCdp(threading.Thread):
         self.cdp.reception = dnow
         self.reseau_courant = dnow - timedelta(minutes=dnow.minute % 15)
         if self.verif_reseau() == False:
-            self.logger.info("réseau en retard (déjà instancié à -1 ?)")
-            # return None ## décommenter cette ligne pour sortir du débug
+            self.logger.warning("réseau en retard (déjà instancié à -1 ?)")
+            #return None
         if self.sauv_local() == False:
             self.logger.warning(
                 f"impossible de sauvegarder localement le cdp {self.cdp.reseau} du produit {self.cdp.produit.shortname}"
@@ -209,11 +209,15 @@ class TraitementsCdp(threading.Thread):
                     cdp.reseau > self.reseau_courant - timedelta(hours=1)
                                         ) and am_i_master():
                 if not cdp.statut_etats:
+                    self.logger.debug(f"cdp {self.cdp.name}, traitement ETATS")
                     self.set_etats(cdp)
                 if not am_i_master():
                     break
                 if not cdp.statut_avertissements:
+                    self.logger.debug(f"cdp {self.cdp.name}, traitement AVERTISSEMENTS")
                     self.set_avertissements(cdp)
-                # self.set_diffusions() !! à faire dans une autre requete
+                if not cdp.statut_diffusions:
+                    self.logger.debug(f"cdp {self.cdp.name}, traitement DIFFUSIONS")
+                    #self.set_diffusions() !! à faire dans une autre requete
 
         return True
