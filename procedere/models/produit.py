@@ -130,6 +130,7 @@ class Cdp(models.Model):
         total_ligne = int(header[1])
         if cdp.produit.shortname[0] == 'V':
             total_ligne += int(header[2])
+        logger.debug(f'nbr de lignes: {len(data) -1} | nbr annoncé: {total_ligne}')
         if total_ligne != len(data) - 1:
             logger.warning(f'{cdp.name} mal formé (nbr de lignes)')
             return None            
