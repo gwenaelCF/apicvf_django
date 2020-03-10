@@ -151,8 +151,8 @@ class Cdp(models.Model):
                                      for l in data[1:int(header[1])+1]}
         for dif in [x for x in set(cdp.seuils_grains.keys()) if x not in set(list_insee)]:
             logger.warning(
-f'{cdp.name} contient code {dif} inconnu (seuil: {cdp.seuils_grains.pop(dif)})')
-            # ATTENTION le code insee est retiré du dico dans le warning
+f'{cdp.name} contient code {dif} inconnu (seuil: {cdp.seuils_grains[dif]})')
+            # ATTENTION le code insee doit être retiré du dico dans le warning
         logger.info(f'{cdp.name} créé')
         # logger.debug(cdp.data)
         logger.debug(
