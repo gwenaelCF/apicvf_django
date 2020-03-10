@@ -31,14 +31,6 @@ class TraitementCarto():
         self.dest_path = param.get_value('app', 'chemin_carto')
         self.delta_t = int(param.get_value('app', 'carto_delta_t'))
         self.cdp_regex = param.get_value('app', 'regex_cdp')
-        self.vf_gr_regex = param.get_value('app', 'regex_vf_gr')
-        self.vf_tr_regex = param.get_value('app', 'regex_vf_tr')
-        self.apic_gr_regex = param.get_value('app', 'regex_apic_gr')
-        self.apic_gr_regex_dept = param.get_value('app', 'regex_apic_gr_dept')
-        self.apic_pos_gr = int(param.get_value('app', 'regex_apic_pos_gr'))
-        self.apic_pos_seuil = int(param.get_value('app', 'regex_apic_pos_seuil'))
-        self.vf_pos_gr = int(param.get_value('app', 'regex_vf_pos_gr'))
-        self.vf_pos_seuil = int(param.get_value('app', 'regex_vf_pos_seuil'))
         # locale (date in french)
         locale.setlocale(locale.LC_TIME, '')
 
@@ -63,10 +55,10 @@ class TraitementCarto():
             # Load grains/depts from database
             for gr_dept in models.granularite.Grain.objects.all().values('insee', 'dept__insee'):
                 gr_insee = gr_dept.get('insee')
-                gr_dept_insee = gr_dept.get('dept__insee')
+                dept_insee = gr_dept.get('dept__insee')
                 # FIXME : warning! added missing '0'
                 grain_6d = str(gr_insee) + '0'
-                self.grain_dept_dict[grain_6d] = gr_dept_insee
+                self.grain_dept_dict[grain_6d] = dept_insee
 
             # Extract prefix/reseau from cdp file
             cdp_prefix = re.search(self.cdp_regex, original_cdp_filename, re.IGNORECASE).group(1)
@@ -131,39 +123,28 @@ class TraitementCarto():
             
             # Read CDP
             self.logger.info('Lecture du CDP...')
-            header_nb_grains = header_nb_troncons = 0
             
-            data = [l.decode('utf-8') for l in self.cdp.data.splitlines()]
-            
-            # CSV HEADER (row 1)
-            row_header = data[0].split(';')
-            header_datetime = row_header[0]
-            # - check date
-            self.check_cdp_header(header_datetime, product_for_file.timestamp)
-            # - get nb grains/troncons
-            if provider == 'apic':
-                header_nb_grains = int(row_header[1])
-            elif provider == 'vf':
-                header_nb_troncons = int(row_header[1])
-                header_nb_grains = int(row_header[2])
+            # In case of cdp LATE, data is given in cdp.data
+            if(self.cdp.retard == True):
+                grains_items = self.cdp.data.items()
+            else:
+                grains_items = self.cdp.seuils_grains.items()
+
+            # Treat data
+            for grain, seuil_gr in grains_items:
+                try:
+                    seuil = int(seuil_gr)
+                    self.handle_csv_row('grain', grain, seuil, product_for_file, data_json)
+                except ValueError:
+                    self.logger.warning('Donnée non traitée: "' + grain + ';'+seuil_gr+'"')
                 
-            self.logger.info('Nombre de grains attendus : ' + str(header_nb_grains))
-            self.logger.info('Nombre de troncons attendus : ' + str(header_nb_troncons))
-            # DATA (row 2 to end)
-            nb_elements = {"grain":0, "troncon":0}
-            for row in data[1:]:
-                self.handle_csv_row(row, data_json, product_for_file, nb_elements)
-                    
-            # Check data integrity
-            if not nb_elements['grain'] == header_nb_grains:
-                raise Exception('Contenu csv : Nombre de grain incohérent! ' + str(nb_elements['grain']) + ' vs ' + str(header_nb_grains))
-            else:
-                self.logger.info('Nombre de grains traités : ' + str(nb_elements['grain']))
-            if not nb_elements['troncon'] == header_nb_troncons:
-                raise Exception('Contenu csv : Nombre de réseau incohérent! ' + str(nb_elements['troncon']) + ' vs ' + str(header_nb_troncons))
-            else:
-                self.logger.info('Nombre de troncons traités : ' + str(nb_elements['troncon']))
-            
+            for troncon, seuil_tr in self.cdp.seuils_troncons.items():
+                try:
+                    seuil = int(seuil_tr)
+                    self.handle_csv_row('troncon', troncon, seuil, product_for_file, data_json)
+                except ValueError:
+                    self.logger.warning('Donnée non traitée: "' + grain + ';'+seuil_tr+'"')
+
             # Compute threshold per department (min 0<-1<1<2 max)
             for dept, seuils in self.list_dept_seuil.items():
                 seuil_max = utils.findmax(seuils)
@@ -261,60 +242,23 @@ class TraitementCarto():
         
         return True
 
-    def handle_csv_row(self, row, data_json, product_for_file, nb_elements):
+    def handle_csv_row(self, type, elt, seuil, product_for_file, data_json):
         """
         Traite les lignes du fichier csv
-        :param raw: la ligne de donnée dans le fichier csv
-        :param data_json: json de sortie
+        :param type: grain/troncon
+        :param elt: id grain ou troncon
+        :param seuil: seuil grain/troncon (int)
         :param product_for_file: l'objet produit concerné
-        :param nb_elements: compteur nb grains/troncons
+        :param data_json: json de sortie
         """
-        data_row = row.split(';')
-
-        # APIC
-        if product_for_file.name == 'apic':
-            # grain
-            if re.match(self.apic_gr_regex, row):
-                data_json['communes'].append({'id':data_row[self.apic_pos_gr], 'c:':data_row[self.apic_pos_seuil]})
-                grain = str(data_row[self.apic_pos_gr])
-                seuil = int(data_row[self.apic_pos_seuil])
-                self.compute_dept_list(grain, seuil)
-                product_for_file.add_grain(seuil)
-                nb_elements["grain"] = nb_elements.get('grain') + 1
-            # dept
-            elif re.match(self.apic_gr_regex_dept, row):
-                self.logger.warning('Ligne non traitée: "' + row + '"')
-                nb_elements["grain"] = nb_elements.get('grain') + 1
-            else:
-                raise Exception('Donnée invalide! : ' + row)
-        # VF
-        elif product_for_file.name == 'vf':   
-            # troncon
-            if re.match(self.vf_tr_regex, row):
-                data_json['troncons'].append({'id':data_row[self.vf_pos_gr], 'c:':data_row[self.vf_pos_seuil]})  
-                nb_elements["troncon"] = nb_elements.get('troncon') + 1                       
-            # grain
-            elif re.match(self.vf_gr_regex, row):
-                data_json['communes'].append({'id':data_row[self.vf_pos_gr], 'c:':data_row[self.vf_pos_seuil]})
-                grain = str(data_row[self.vf_pos_gr])
-                seuil = int(data_row[self.vf_pos_seuil])
-                self.compute_dept_list(grain, seuil)
-                product_for_file.add_grain(seuil)
-                nb_elements["grain"] = nb_elements.get('grain') + 1
-            else:
-                raise Exception('Donnée invalide! : ' + row)
-
-    def check_cdp_header(self, header_time, cdp_time_reseau):
-        """
-        Contrôle de l'en-tête du fichier json
-        :param header_time: la ligne d'en-tête dans le fichier csv
-        :param cdp_time_reseau: heure reseau extraite du nom du fichier
-        :return: Exception, si l'horaire du réseau est incohérene
-        """
-        if header_time == cdp_time_reseau:
-            self.logger.info('En-tête csv : Heure reseau valide')
-        else:
-            raise Exception('En-tête csv : Heure reseau incohérente! ' + header_time + ' vs ' + cdp_time_reseau) 
+        # troncon
+        if type == 'troncon':
+            data_json['troncons'].append({'id':str(elt), 'c:':str(seuil)})                      
+        # grain
+        elif type == 'grain':
+            data_json['communes'].append({'id':str(elt), 'c:':str(seuil)})
+            self.compute_dept_list(elt, seuil)
+            product_for_file.add_grain(seuil)
 
     @classmethod        
     def compute_date_fr(self, cdp_time_reseau, timezone):
@@ -336,7 +280,13 @@ class TraitementCarto():
         :param seuil: (ex: 2)
         :return:
         """
+        # Récupère le département correespondant au grain
         dept = self.grain_dept_dict.get(grain)
+        
+        # FIXME try adding a '0'
+        if dept is None:
+            dept = self.grain_dept_dict.get(grain + '0')
+        
         if dept is None:
             self.logger.warning('Grain inconnu: ' + grain)
         else:
@@ -382,6 +332,7 @@ class Produit():
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
     def add_grain(self, seuil):
+        seuil = int(seuil)
         if seuil == -1:
             self.nb_gr_nc += 1
         elif seuil == 1:  

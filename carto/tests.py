@@ -36,7 +36,8 @@ class CdpTestCase(TestCase):
         Set up data for the whole TestCase
         '''
         with timing.Timer() as t:
-            management.call_command('insert_data_perenn', 'tout', verbosity=0)
+            args = ['regles', 'produits', 'grains', 'params']
+            management.call_command('insert_data_perenn', *args, verbosity=0)
 
         print(f'Base mise en place en {t.interval}')
 

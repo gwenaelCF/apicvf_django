@@ -20,3 +20,4 @@ coverage.xml
 procedere/migrations/*.py
 CHANGELOG*
 .vscode/settings.json
+apicvf_django/static/carto/**/*.json

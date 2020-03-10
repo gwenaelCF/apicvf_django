@@ -13,38 +13,10 @@
 	},
 	{
 		"model": "parameters.application", 
-		"fields": {"key": "regex_cdp", "value": "^([A-Z]{4}\\d{2}_[A-Z]{4})_(\\d{2})(\\d{4}).(\\d{8})(\\d{6})_(.*)\\.(.*)\\.LT$"}
+		"fields": {"key": "regex_cdp", "value": "^([A-Z]{4}\\d{2}_[A-Z]{4})_(\\d{2})(\\d{4}).(\\d{8})(\\d{6})_(.*)\\.(.*)\\.LT(.LATE)?$"}
 	},
 	{
 		"model": "parameters.application", 
-		"fields": {"key": "regex_vf_gr", "value": "^(.{5})(\\d{1});(-?\\d);(.*);(.*)$"}
-	},
-	{
-		"model": "parameters.application", 
-		"fields": {"key": "regex_vf_tr", "value": "^([^;]*);(-?\\d)$"}
-	},
-	{
-		"model": "parameters.application", 
-		"fields": {"key": "regex_apic_gr", "value": "^(.{5})(\\d{1});(.*);(.*);(-?\\d);.*$"}
-	},
-	{
-		"model": "parameters.application", 
-		"fields": {"key": "regex_apic_gr_dept", "value": "^(.{2});(-?\\d);.*$"}
-	},
-	{
-		"model": "parameters.application", 
-		"fields": {"key": "regex_apic_pos_gr", "value": 0}
-	},
-	{
-		"model": "parameters.application", 
-		"fields": {"key": "regex_apic_pos_seuil", "value": 3}
-	},
-	{
-		"model": "parameters.application", 
-		"fields": {"key": "regex_vf_pos_gr", "value": 0}
-	},
-	{
-		"model": "parameters.application", 
-		"fields": {"key": "regex_vf_pos_seuil", "value": 1}
+		"fields": {"key": "virtual_ip_middle", "value": "localhost"}
 	}
 ]
