@@ -6,3 +6,4 @@
 /node_sources/
 /node_modules/
 __pycache__/
+/apicvf_django/static/
