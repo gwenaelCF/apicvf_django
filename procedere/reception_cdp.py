@@ -165,7 +165,7 @@ class TraitementsCdp(threading.Thread):
             fonction lancée en thread pour traiter le cdp arrivant 
             et si besoin les cdp précédents
         """
-        self.logger.bind(produit=self.cdp.produit.shortname, reseau=self.cdp.reseau)
+        self.logger= self.logger.bind(produit=self.cdp.produit.shortname, reseau=self.cdp.reseau)
         self.logger.debug("démarrage du traitement")
         self.logger.debug("vérifications")
         if self.cdp == None:
@@ -215,17 +215,17 @@ class TraitementsCdp(threading.Thread):
                     cdp.reseau >= self.reseau_courant - timedelta(hours=1)
                                         ) and am_i_master():
                 if not cdp.statut_etats:
-                    self.logger.debug(f"cdp {self.cdp.name}, traitement ETATS")
+                    self.logger.debug(f"cdp {cdp.name}, traitement ETATS")
                     self.set_etats(cdp)
                 else:
-                    self.logger.debug(f"cdp {self.cdp.name} déjà traité pr les états")
+                    self.logger.debug(f"cdp {cdp.name} déjà traité pr les états")
                 if not am_i_master():
                     break
                 if not cdp.statut_avertissements:
-                    self.logger.debug(f"cdp {self.cdp.name}, traitement AVERTISSEMENTS")
+                    self.logger.debug(f"cdp {cdp.name}, traitement AVERTISSEMENTS")
                     self.set_avertissements(cdp)
                 if not cdp.statut_diffusions:
-                    self.logger.debug(f"cdp {self.cdp.name}, traitement DIFFUSIONS")
+                    self.logger.debug(f"cdp {cdp.name}, traitement DIFFUSIONS")
                     #self.set_diffusions() !! à faire dans une autre requete
 
         return True
