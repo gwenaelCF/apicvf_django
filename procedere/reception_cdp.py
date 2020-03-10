@@ -96,7 +96,7 @@ class TraitementsCdp(threading.Thread):
                     if gestion.trouve_fichier(reseau.strftime('%Y%m%d%H%M')):
                         cdp_buffer = create_cdp(self.cdp.produit,
                                                 reseau,
-                                                cdp=gestion.path.joinpath(
+                                                cdp_file=gestion.path.joinpath(
                                                     reseau.strftime('%Y%m%d%H%M'))
                                                 )
                         cdp_prev = pm.produit.Cdp.create(cdp_buffer)
