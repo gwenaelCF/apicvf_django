@@ -32,7 +32,7 @@ class TraitementCarto():
         self.delta_t = int(param.get_value('app', 'carto_delta_t'))
         self.cdp_regex = param.get_value('app', 'regex_cdp')
         # locale (date in french)
-        locale.setlocale(locale.LC_TIME, '')
+        locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
 
     def process(self):
         """

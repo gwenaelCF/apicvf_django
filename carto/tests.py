@@ -143,6 +143,8 @@ class CdpTestCase(TestCase):
         self.logger.info(f'Purge du répertoire {dir}') 
         for root, dirs, files in os.walk(dir):
             for f in files:
+                if(f.startswith('.git')):
+                    continue
                 file_path = os.path.join(root, f)
                 try:
                     self.logger.debug(f'Suppression du fichier {f}') 
