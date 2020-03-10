@@ -57,14 +57,13 @@ def create_cdp(prod, reseau, cdp_file=None):
     reception = (reseau+timedelta(minutes=15)).strftime('%Y%m%d%H%M%S')
     reseau = reseau.strftime('%Y%m%d%H%M')
 
-    name = prod.entete + '_' + reseau[6:] + \
-        '.' + reception + '_XXXXXXXXXXX_XXXXX.XXX.LT'
+    
     if not cdp_file:
-        name += '.LATE'
+        name = prod.entete + '_' + reseau[6:] + \
+        '.' + reception + '_XXXXXXXXXXX_XXXXX.XXX.LT' + '.LATE'
         liste_insee = granularite.Grain.objects.filter(
             id__in=prod.etatgrainproduit_set.values_list('grain_id', flat=True)
         ).values_list('insee', flat=True)
-
         # TODO revoir le format en fonction des choix definitifs pour les CDP
         troncons = ';0;' if prod.shortname.startswith('V') else ';'
         texte = bytes(reseau+troncons+str(len(liste_insee))+'\n', 'UTF-8')

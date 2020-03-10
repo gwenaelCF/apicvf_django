@@ -41,7 +41,8 @@ class TraitementsCdp(threading.Thread):
         super().__init__(**kwargs)
 
     def verif_reseau(self):
-        if self.cdp.reseau < self.reseau_courant:
+        if (self.cdp.reseau < self.reseau_courant
+            ) and not self.cdp.name.endswith('.LATE'):
             return False
         return True
 
@@ -73,7 +74,7 @@ class TraitementsCdp(threading.Thread):
         # checker carto + diffusion
         # param vf et apic ?
         cdp_a_traiter = [self.cdp]
-        reseau = self.reseau_courant - timedelta(minutes=15)
+        reseau = self.reseau_courant - timedelta(minutes=30)
         while reseau >= self.reseau_courant - timedelta(hours=72):
             try:
                 # cdp en base ?
@@ -117,7 +118,6 @@ class TraitementsCdp(threading.Thread):
                 self.logger.warning(str(e))
 
             reseau -= timedelta(minutes=15)
-        self.logger.debug(cdp_a_traiter)
         self.logger.debug([cdp.reseau for cdp in cdp_a_traiter])
         return cdp_a_traiter
 
@@ -139,7 +139,8 @@ class TraitementsCdp(threading.Thread):
             qs_etat = pm.etat.EtatGrainProduit.objects.filter(
                                                     produit_id=cdp.produit_id)
             if cdp.retard:
-                seuils[-1]=[insee for insee in cdp.data.keys()]
+                list_insee = list(qs_etat.values_list('grain__insee', flat=True))
+                seuils[-1]=[insee for insee in list_insee]
             else:
                 for insee, seuil in cdp.seuils_grains.items():
                     seuils[int(seuil)].append(insee)
@@ -148,6 +149,7 @@ class TraitementsCdp(threading.Thread):
                 modif_seuils_batch(qs_etat.filter(grain__insee__in=seuils[key]),
                                     key
                                     )
+            pm.produit.Cdp.objects.filter(id=cdp.id).update(statut_etats=True)
         cls.logger.info(f'update etats fait en {t.interval}')
 
     @staticmethod
@@ -163,6 +165,7 @@ class TraitementsCdp(threading.Thread):
             fonction lancée en thread pour traiter le cdp arrivant 
             et si besoin les cdp précédents
         """
+        self.logger= self.logger.bind(produit=self.cdp.produit.shortname, reseau=self.cdp.reseau)
         self.logger.debug("démarrage du traitement")
         self.logger.debug("vérifications")
         if self.cdp == None:
@@ -189,7 +192,7 @@ class TraitementsCdp(threading.Thread):
             self.logger.info(f"cdp {self.cdp.name} sauvegardé en base")
         except Exception as e:
             self.logger.warning(
-                "cdp {self.cdp.name} non sauvegardé en base !\n"+str(e))
+                f'cdp {self.cdp.name} non sauvegardé en base !\n'+str(e))
         self.logger.debug("démarrage de la boucle sur les cdp")
         cdp_list = self.get_list_cdp()
         cdp_list.sort(key=lambda x: x.reseau)
@@ -204,20 +207,25 @@ class TraitementsCdp(threading.Thread):
                 except Exception as e:
                     self.logger.warning(str(e))
                     self.logger.warning(
-                        f'carto de {cdp.reseau} du produit {cdp.produit_id} a échoué')
+                        f'carto de {cdp.reseau} du produit {cdp.produit.shortname} a échoué')
+            self.logger.debug(
+                f'cdp.statut_diffusions: {cdp.statut_diffusions} | cdp.reseau {cdp.reseau} | reseau courant - 1h: {self.reseau_courant - timedelta(hours=1)}'
+                )
             if (not cdp.statut_diffusions) and (
-                    cdp.reseau > self.reseau_courant - timedelta(hours=1)
+                    cdp.reseau >= self.reseau_courant - timedelta(hours=1)
                                         ) and am_i_master():
                 if not cdp.statut_etats:
-                    self.logger.debug(f"cdp {self.cdp.name}, traitement ETATS")
+                    self.logger.debug(f"cdp {cdp.name}, traitement ETATS")
                     self.set_etats(cdp)
+                else:
+                    self.logger.debug(f"cdp {cdp.name} déjà traité pr les états")
                 if not am_i_master():
                     break
                 if not cdp.statut_avertissements:
-                    self.logger.debug(f"cdp {self.cdp.name}, traitement AVERTISSEMENTS")
+                    self.logger.debug(f"cdp {cdp.name}, traitement AVERTISSEMENTS")
                     self.set_avertissements(cdp)
                 if not cdp.statut_diffusions:
-                    self.logger.debug(f"cdp {self.cdp.name}, traitement DIFFUSIONS")
+                    self.logger.debug(f"cdp {cdp.name}, traitement DIFFUSIONS")
                     #self.set_diffusions() !! à faire dans une autre requete
 
         return True
