@@ -11,9 +11,9 @@ PLUGIN_RUNTIME="/home/mfserv/var/plugins/${PLUGIN_NAME}"
 install_locale()
 {
     echo "-> Install locale fr_FR.UTF-8"
-    /usr/bin/sudo -n yum reinstall glibc-common
-    /usr/bin/sudo localedef -c -i fr_FR -f UTF-8 fr_FR.UTF-8
-    /usr/bin/sudo echo "LANG=fr_FR.UTF-8" > /etc/locale.conf
+    sudo -n yum reinstall glibc-common
+    sudo localedef -c -i fr_FR -f UTF-8 fr_FR.UTF-8
+    echo "LANG=fr_FR.UTF-8" | sudo tee /etc/locale.conf
 }
 
 prepare()
