@@ -1,4 +1,13 @@
 [
+	
+	{
+		"model": "parameters.application", 
+		"fields": {"key": "mfserv_local_path", "value": "/home/mfserv"}
+	},
+	{
+		"model": "parameters.application", 
+		"fields": {"key": "mfserv_local_port", "value": "18868"}
+	},
 	{
 		"model": "parameters.application", 
 		"fields": {"key": "chemin_cdp", "value": "/home/mfserv/cdp"}
@@ -18,5 +27,9 @@
 	{
 		"model": "parameters.application", 
 		"fields": {"key": "virtual_ip_middle", "value": "localhost"}
+	},
+	{
+		"model": "parameters.application", 
+		"fields": {"key": "virtual_port_middle", "value": "18868"}
 	}
 ]
