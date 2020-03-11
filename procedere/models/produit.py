@@ -139,6 +139,8 @@ class Cdp(models.Model):
         list_insee = list(qs_etat.values_list('grain__insee', flat=True))
         if re.search('.LATE$', cdp.name):
             cdp.retard = True
+        # en 2 étapes pour la carto (en cas de reprise d'un fichier en bdd)
+        if cdp.retard:
             cdp.data = {insee:-1 for insee in list_insee}
         else:
             if cdp.produit.shortname[0] == 'V':

@@ -7,7 +7,7 @@ from mflog import get_logger
 
 from procedere import models as pm
 #from parameters import models as param
-from procedere.utils import GestionCdp, create_cdp, modif_seuils_batch
+from procedere.utils import GestionCdp, create_cdp, modif_seuils_batch, findmax
 from carto import traitement_carto as tc
 from helpers import timing
 
@@ -135,21 +135,39 @@ class TraitementsCdp(threading.Thread):
     def set_etats(cls, cdp):
         seuils = {0: [], -1: [], 1: [], 2: []}
         with timing.Timer() as t:
+            # update des EtatGrain
             cls.logger.debug(f'création dico des seuils de grains')
             qs_etat = pm.etat.EtatGrainProduit.objects.filter(
                                                     produit_id=cdp.produit_id)
+            list_insee = list(qs_etat.values_list('grain__insee', flat=True))
             if cdp.retard:
-                list_insee = list(qs_etat.values_list('grain__insee', flat=True))
                 seuils[-1]=[insee for insee in list_insee]
             else:
                 for insee, seuil in cdp.seuils_grains.items():
                     seuils[int(seuil)].append(insee)
+                seuils[0]= set(list_insee).diffence(cdp.seuils_grains.keys())
             cls.logger.debug(f'update (état)grains en base')
             for key in seuils.keys():
                 modif_seuils_batch(qs_etat.filter(grain__insee__in=seuils[key]),
                                     key
                                     )
             pm.produit.Cdp.objects.filter(id=cdp.id).update(statut_etats=True)
+            # update des EtatDept
+            qs_etat_dept = pm.etat.EtatDeptProduit.objects.filter(
+                                                    produit_id=cdp.produit_id)
+            if cdp.retard:
+                etat_dept_dict = {etat_dept.id: -1 for etat_dept in qs_etat_dept}
+            else:
+                etat_dept_dict = {etat_dept.id:findmax([
+                    cdp.seuils_grains.get(x,0) 
+                    for x in etat_dept.dept.grain_set.values_list('insee', flat=True)
+                    ]) for etat_dept in qs_etat_dept}
+            seuils_dept = {0: [], -1: [], 1: [], 2: []}
+            for key, value in etat_dept_dict.items():
+                seuils_dept[value].append(key)
+            for key, value in seuils_dept.items():
+                modif_seuils_batch(qs_etat_dept.filter(id__in=value),key)
+
         cls.logger.info(f'update etats fait en {t.interval}')
 
     @staticmethod
@@ -179,7 +197,7 @@ class TraitementsCdp(threading.Thread):
             #return None
         if self.sauv_local() == False:
             self.logger.warning(
-                f"impossible de sauvegarder localement le cdp {self.cdp.reseau} du produit {self.cdp.produit.shortname}"
+                f"impossible de sauvegarder localement le cdp"
             )
             return None
         else:
@@ -198,7 +216,7 @@ class TraitementsCdp(threading.Thread):
         cdp_list.sort(key=lambda x: x.reseau)
         for cdp in cdp_list:
             self.logger.info(
-                f'traitment cdp {cdp.reseau} du produit {cdp.produit_id}')
+                f'traitement cdp {cdp.reseau} du produit {cdp.produit_id}')
             if not cdp.statut_carto:
                 try:
                     if self.carto(cdp) == True:
@@ -215,17 +233,17 @@ class TraitementsCdp(threading.Thread):
                     cdp.reseau >= self.reseau_courant - timedelta(hours=1)
                                         ) and am_i_master():
                 if not cdp.statut_etats:
-                    self.logger.debug(f"cdp {cdp.name}, traitement ETATS")
+                    self.logger.debug(f"traitement ETATS")
                     self.set_etats(cdp)
                 else:
-                    self.logger.debug(f"cdp {cdp.name} déjà traité pr les états")
+                    self.logger.debug(f"déjà traité pr les états")
                 if not am_i_master():
                     break
                 if not cdp.statut_avertissements:
-                    self.logger.debug(f"cdp {cdp.name}, traitement AVERTISSEMENTS")
+                    self.logger.debug(f"traitement AVERTISSEMENTS")
                     self.set_avertissements(cdp)
                 if not cdp.statut_diffusions:
-                    self.logger.debug(f"cdp {cdp.name}, traitement DIFFUSIONS")
+                    self.logger.debug(f"traitement DIFFUSIONS")
                     #self.set_diffusions() !! à faire dans une autre requete
 
         return True
