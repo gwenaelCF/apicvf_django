@@ -1,12 +1,13 @@
 """ module de traitements des cdp """
 import threading
+import requests
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 
 from mflog import get_logger
 
 from procedere import models as pm
-#from parameters import models as param
+from parameters import models as param
 from procedere.utils import GestionCdp, create_cdp, modif_seuils_batch, findmax
 from carto import traitement_carto as tc
 from helpers import timing
@@ -24,9 +25,58 @@ def reception_cdp(dp):
 
 
 def am_i_master():
-    # TODO real one - à basculer en util ?
-    return True
+    """
+        vérification master (solution 1)
+        - solution 1: vérifie si local nginx uuid = virtual nginx uuid
+        - solution 2: vérifie si la commande 'ip addr' retourne 
+            l'adresse ip virtuelle en tant que 'scope global secondary ethX'
+    """
+    logger = get_logger("am_i_master")
 
+    try:
+        
+        local_uuid_file = "default_uuid_local_file"
+        local_uuid_http = "default_uuid_local_http"
+        virtual_uuid = "default_uuid_remote"
+
+        # Get local uuid from file /home/mfserv/var/uuid
+        mfserv_local_path = param.get_value('app', 'mfserv_local_path')
+        uuid_file_path = mfserv_local_path + '/var/uuid'
+        with open(uuid_file_path, "r") as uuid_file:
+            local_uuid_file = uuid_file.read().strip()
+        logger.debug("local uuid file : " + local_uuid_file)
+
+        # Get local uuid from http (ensure local server is OK)
+        mfserv_local_port = param.get_value('app', 'mfserv_local_port')
+        url = "http://localhost:{}/uuid".format(mfserv_local_port)
+        resp = requests.get(url, timeout=10)
+        local_uuid_http = resp.content.strip().decode()
+        logger.debug("local uuid http : " + local_uuid_http)
+        assert local_uuid_file == local_uuid_http, 'local server seems down'
+        
+        # Get uuid from virtual (proxy)
+        ip = param.get_value('app', 'virtual_ip_middle')
+        port = param.get_value('app', 'virtual_port_middle')
+        url = "http://{}:{}/uuid".format(ip, port)
+        response = requests.get(url, timeout=10)
+        if response.status_code == 200:
+            virtual_uuid = response.content.strip().decode()
+            logger.debug("remote uuid : " + virtual_uuid)
+        else:
+            logger.warning("impossible de joindre l'adresse virtuelle")
+        
+        # check if local uuid = remote uuid
+        if virtual_uuid == local_uuid_http:
+            logger.info("i am the master")
+            return True
+
+        logger.warning("i am the slave")
+
+    except Exception as e:
+        logger.error(e, exc_info=True)
+        return False
+
+    return False
 
 class TraitementsCdp(threading.Thread):
     """
@@ -145,7 +195,7 @@ class TraitementsCdp(threading.Thread):
             else:
                 for insee, seuil in cdp.seuils_grains.items():
                     seuils[int(seuil)].append(insee)
-                seuils[0]= set(list_insee).diffence(cdp.seuils_grains.keys())
+                seuils[0]= set(list_insee).difference(cdp.seuils_grains.keys())
             cls.logger.debug(f'update (état)grains en base')
             for key in seuils.keys():
                 modif_seuils_batch(qs_etat.filter(grain__insee__in=seuils[key]),
