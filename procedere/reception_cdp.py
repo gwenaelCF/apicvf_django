@@ -126,13 +126,14 @@ class TraitementsCdp(threading.Thread):
     def carto(cdp):
         """
             lance la carto
-            très loin
+            très loin   
         """
         carto_process = tc.TraitementCarto(cdp)
         return carto_process.process()
 
     @classmethod
     def set_etats(cls, cdp):
+        cls.logger= cls.logger.bind(produit=cdp.produit.shortname, reseau=cdp.reseau)
         seuils = {0: [], -1: [], 1: [], 2: []}
         with timing.Timer() as t:
             # update des EtatGrain
@@ -145,7 +146,7 @@ class TraitementsCdp(threading.Thread):
             else:
                 for insee, seuil in cdp.seuils_grains.items():
                     seuils[int(seuil)].append(insee)
-                seuils[0]= set(list_insee).diffence(cdp.seuils_grains.keys())
+                seuils[0]= set(list_insee).difference(cdp.seuils_grains.keys())
             cls.logger.debug(f'update (état)grains en base')
             for key in seuils.keys():
                 modif_seuils_batch(qs_etat.filter(grain__insee__in=seuils[key]),
@@ -245,5 +246,5 @@ class TraitementsCdp(threading.Thread):
                 if not cdp.statut_diffusions:
                     self.logger.debug(f"traitement DIFFUSIONS")
                     #self.set_diffusions() !! à faire dans une autre requete
-
+            self.logger.debug(f'fin de traitement')
         return True

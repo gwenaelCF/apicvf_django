@@ -1,16 +1,24 @@
 regle_apic_file = './procedere/data/tableau_regle_apic.csv'
 regle_vf_file = './procedere/data/tableau_regle_vf.csv'
 
-def get_liste_cas():
+def get_liste_cas(filename, regle='apic'):
     """ renvoie le dico pour l'ensemble des cas possible """
 
     liste_cas = {}
     
     with open(filename,'r') as f:
         junk = f.readline()
-        for l in f.readlines():
-            cas = l.strip('\n').split(';')
-            liste_cas[tuple(int(cas[i]) for i in [0,1,2])]=False if cas[3]=='ras' else True
+        if regle == 'apic':
+            for l in f.readlines():
+                cas = l.strip('\n').split(';')
+                liste_cas[tuple(int(cas[i]) for i in [0,1,2])]= (cas[3]=='True')
+        elif regle == 'vf':
+            for l in f.readlines():
+                cas = l.strip('\n').split(';')
+                if cas[0] == 'False':
+                    cas[1] = 0
+                liste_cas[tuple(int(cas[i]) for i in [1,2,3])]= (cas[4]=='True')
+
     return liste_cas
 
 def generate_set(fichier, delai=False):
