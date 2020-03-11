@@ -8,8 +8,17 @@ GIT_BASE="/builds/apic/"
 PLUGIN_NAME="apicvf_django"
 PLUGIN_RUNTIME="/home/mfserv/var/plugins/${PLUGIN_NAME}"
 
+install_locale()
+{
+    echo "-> Install locale fr_FR.UTF-8"
+    yum reinstall glibc-common
+    localedef -c -i fr_FR -f UTF-8 fr_FR.UTF-8
+    echo "LANG=fr_FR.ISO-8859-15" > /etc/locale.conf
+}
+
 prepare()
 {
+    install_locale
     # start mfserv
     echo "-> 1. Start mfsev"
     mfserv.start
