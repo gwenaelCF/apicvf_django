@@ -8,6 +8,8 @@ from django.core import serializers
 from django.apps import apps
 
 from procedere import models
+import produit.models
+from helpers.timing import what_time_is_it
 
 class Command(BaseCommand):
     help='''
@@ -26,19 +28,19 @@ class Command(BaseCommand):
 
     @staticmethod
     def insert_regles(data):
-        qs = models.produit.Regle.objects.all().values_list('name', flat=True)
+        qs = produit.models.Regle.objects.all().values_list('name', flat=True)
         for regle in serializers.deserialize('json',data):
             if regle.object.name not in qs :
                 regle.save()
 
     @staticmethod
     def insert_produits():
-        for entete, prod in models.produit.ENTETES_PRODUITS.items():
-            tz = models.produit.TIMEZONE[prod]
-            name = models.produit.PRODUITS[prod]
-            new_prod = models.produit.Produit(shortname=prod, entete=entete, name=name, timezone=tz)
+        for entete, prod in produit.models.ENTETES_PRODUITS.items():
+            tz = produit.models.TIMEZONE[prod]
+            name = produit.models.PRODUITS[prod]
+            new_prod = produit.models.Produit(shortname=prod, entete=entete, name=name, timezone=tz)
             reg = 'apic' if new_prod.name[0]=='A' else 'vf'
-            new_prod.regle = models.produit.Regle.objects.get(name=reg)
+            new_prod.regle = produit.models.Regle.objects.get(name=reg)
             try :
                 new_prod.save()
             except :
@@ -91,10 +93,10 @@ class Command(BaseCommand):
         oridict = {}
         for d in dicteur:
             oridict.setdefault(d['origin'], []).append(d['id'])
-        for produit in models.produit.Produit.objects.all():
-            models.etat.EtatProduit.objects.get_or_create(produit=produit)
+        for prodt in produit.models.Produit.objects.all():
+            models.etat.EtatProduit.objects.get_or_create(produit=prodt)
             insee_produit = [
-                insee for orig in models.produit.PRODUITS_ORIGIN[produit.shortname] 
+                insee for orig in produit.models.PRODUITS_ORIGIN[prodt.shortname] 
                         for insee in oridict[orig]
                         ]
             grains_temp, dept_temp = [], []
@@ -102,17 +104,17 @@ class Command(BaseCommand):
                                         insee__in=insee_produit)
             for grain in gr_qs:
                 g = models.etat.EtatGrainProduit(
-                                    produit=produit, grain = grain)
+                                    produit=prodt, grain = grain)
                 grains_temp.append(g)
             dep_qs = models.granularite.Dept.objects.filter(
                                     id__in=set(gr_qs.values_list('dept',flat=True))
                                     )
             for dept in dep_qs:
-                d = models.etat.EtatDeptProduit(produit=produit, dept = dept)
+                d = models.etat.EtatDeptProduit(produit=prodt, dept = dept)
                 dept_temp.append(d)
             for reg in models.granularite.Region.objects.filter(
                                     id__in=set(dep_qs.values_list('region', flat=True))): 
-                r = models.etat.EtatRegionProduit(produit=produit, reg = reg)
+                r = models.etat.EtatRegionProduit(produit=prodt, reg = reg)
                 dico_etat['reg'].append(r)
             dico_etat['grain'].extend(grains_temp)
             dico_etat['dep'].extend(dept_temp)
@@ -137,6 +139,7 @@ class Command(BaseCommand):
 
 
     def handle(self, *args, **options):
+        print(f'début insertion des données ({what_time_is_it()})')
         allowed = ['regles','produits', 'grains' ,'etats', 'params', 'tout']
 
         todo = options['todo']
@@ -219,7 +222,7 @@ class Command(BaseCommand):
 
         t_fin = time.time()
         self.stdout.write(self.style.NOTICE(f'total secondes {t_fin-t_start}'))
-            
+        print(f'fin méthode ({what_time_is_it()})')
 
         
 

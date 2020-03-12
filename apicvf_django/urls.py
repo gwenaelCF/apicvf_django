@@ -27,8 +27,7 @@ from django.conf.urls import include, url
 urlpatterns.append(url(r'^procedere/', include('procedere.urls')))
 urlpatterns.append(url(r'^api/', include('procedere.urls')))
 
-urlpatterns.append(url(r'^epistola/', include('epistola.urls')))
-urlpatterns.append(path('', include('epistola.urls')))
+
 
 
 # ADDED BY METWORK/MFSERV/DJANGO PLUGIN TEMPLATE

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
-from .produit import Produit
+from produit.models import Produit
 from .granularite import *
 
 

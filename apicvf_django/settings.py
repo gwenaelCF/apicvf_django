@@ -37,7 +37,9 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'carto',
     'procedere',
-    'epistola',
+    'diffusion',
+    'produit',
+    'souscription',
     'parameters',
     'django_extensions',
     'django.contrib.admin',

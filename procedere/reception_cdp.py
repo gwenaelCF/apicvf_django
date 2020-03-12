@@ -7,6 +7,7 @@ from datetime import datetime, timezone, timedelta
 from mflog import get_logger
 
 from procedere import models as pm
+import produit
 from parameters import models as param
 from procedere.utils import GestionCdp, create_cdp, modif_seuils_batch, findmax
 from carto import traitement_carto as tc
@@ -87,7 +88,7 @@ class TraitementsCdp(threading.Thread):
 
     def __init__(self, cdp, **kwargs):
         self.logger.debug("instanciation du thread")
-        self.cdp = pm.produit.Cdp.create(cdp)
+        self.cdp = produit.models.Cdp.create(cdp)
         super().__init__(**kwargs)
 
     def verif_reseau(self):
@@ -128,10 +129,10 @@ class TraitementsCdp(threading.Thread):
         while reseau >= self.reseau_courant - timedelta(hours=72):
             try:
                 # cdp en base ?
-                if pm.produit.Cdp.objects.filter(
+                if produit.models.Cdp.objects.filter(
                                     produit_id=self.cdp.produit_id, reseau=reseau
                                     ).exists():
-                    cdp_prev = pm.produit.Cdp.objects.get(
+                    cdp_prev = produit.models.Cdp.objects.get(
                                         produit_id=self.cdp.produit_id,
                                         reseau=reseau
                                         )
@@ -149,7 +150,7 @@ class TraitementsCdp(threading.Thread):
                                                 cdp_file=gestion.path.joinpath(
                                                     reseau.strftime('%Y%m%d%H%M'))
                                                 )
-                        cdp_prev = pm.produit.Cdp.create(cdp_buffer)
+                        cdp_prev = produit.models.Cdp.create(cdp_buffer)
                         self.logger.debug(f'{cdp_prev} en local')
                         if cdp_prev == None:
                             self.logger.warning(
@@ -202,7 +203,7 @@ class TraitementsCdp(threading.Thread):
                 modif_seuils_batch(qs_etat.filter(grain__insee__in=seuils[key]),
                                     key
                                     )
-            pm.produit.Cdp.objects.filter(id=cdp.id).update(statut_etats=True)
+            produit.models.Cdp.objects.filter(id=cdp.id).update(statut_etats=True)
             # update des EtatDept
             qs_etat_dept = pm.etat.EtatDeptProduit.objects.filter(
                                                     produit_id=cdp.produit_id)
