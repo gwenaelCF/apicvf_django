@@ -21,6 +21,7 @@ class Command(BaseCommand):
     '''
     requires_migrates_checks = True
 
+
     def add_arguments(self, parser):
         parser.add_argument('todo', nargs='+', type=str)
         parser.add_argument('-d', type=str, default="",
@@ -125,17 +126,19 @@ class Command(BaseCommand):
                             dico_etat['dep'], batch_size=1000, ignore_conflicts=True)
         models.etat.EtatGrainProduit.objects.bulk_create(
                             dico_etat['grain'], batch_size=5000, ignore_conflicts=True)
-
+    
     @staticmethod
     def insert_params(data_param):
         '''
         Insert parameters in database, taken in params.json
         Value is updated if key already exist
         '''
+        # flush
+        parameters.models.Application.objects.all().delete()
+        parameters.models.System.objects.all().delete()
+        # insert
         for param in serializers.deserialize('json', data_param):
-            parameters.models.Application.objects.update_or_create(
-                key=param.object.key, defaults={'value': param.object.value}
-            )
+            param.save()
 
     def handle(self, *args, **options):
         print(f'début insertion des données ({what_time_is_it()})')
@@ -222,3 +225,4 @@ class Command(BaseCommand):
         t_fin = time.time()
         self.stdout.write(self.style.NOTICE(f'total secondes {t_fin-t_start}'))
         print(f'fin méthode ({what_time_is_it()})')
+

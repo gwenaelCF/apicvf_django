@@ -28,6 +28,11 @@ DEBUG = True
 # Get the db according to the architecture the plugin's on
 LOCAL_VM = True
 
+# Network interface (used by command ip addr [check master])
+NETWORK_INTERFACE = 'eth0'
+if LOCAL_VM:
+    NETWORK_INTERFACE = 'lo'
+
 
 ALLOWED_HOSTS = []
 

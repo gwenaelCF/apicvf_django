@@ -23,7 +23,7 @@ class GestionCdp(GestionDossier):
         self.logger = get_logger('GestionDossier')
         self.logger.debug(f'produit: {cdp.produit.name}')
         self.cdp = cdp
-        self.chemin = param.get_value('app', 'chemin_cdp')
+        self.chemin = param.System.get_value('chemin_cdp')
         self.produit = self.cdp.produit.shortname
         self.current = Path('.')
         self.path = Path(self.chemin, self.produit)
