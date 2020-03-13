@@ -1,21 +1,4 @@
 [
-	
-	{
-		"model": "parameters.application", 
-		"fields": {"key": "mfserv_local_path", "value": "/home/mfserv"}
-	},
-	{
-		"model": "parameters.application", 
-		"fields": {"key": "mfserv_local_port", "value": "18868"}
-	},
-	{
-		"model": "parameters.application", 
-		"fields": {"key": "chemin_cdp", "value": "/home/mfserv/cdp"}
-	},
-	{
-		"model": "parameters.application", 
-		"fields": {"key": "chemin_carto", "value": "apicvf_django/static/carto/"}
-    },
 	{
 		"model": "parameters.application", 
 		"fields": {"key": "carto_delta_t", "value": 72}
@@ -25,11 +8,31 @@
 		"fields": {"key": "regex_cdp", "value": "^([A-Z]{4}\\d{2}_[A-Z]{4})_(\\d{2})(\\d{4}).(\\d{8})(\\d{6})_(.*)\\.(.*)\\.LT(.LATE)?$"}
 	},
 	{
-		"model": "parameters.application", 
-		"fields": {"key": "virtual_ip_middle", "value": "localhost"}
+		"model": "parameters.system", 
+		"fields": {"key": "mfserv_local_path", "value": "/home/mfserv"}
 	},
 	{
-		"model": "parameters.application", 
+		"model": "parameters.system", 
+		"fields": {"key": "mfserv_local_port", "value": "18868"}
+	},
+	{
+		"model": "parameters.system", 
+		"fields": {"key": "chemin_cdp", "value": "/home/mfserv/cdp"}
+	},
+	{
+		"model": "parameters.system", 
+		"fields": {"key": "chemin_carto", "value": "apicvf_django/static/carto/"}
+    },
+	{
+		"model": "parameters.system", 
+		"fields": {"key": "virtual_ip_middle", "value": "127.0.0.1"}
+	},
+	{
+		"model": "parameters.system", 
 		"fields": {"key": "virtual_port_middle", "value": "18868"}
+	},
+	{
+		"model": "parameters.system", 
+		"fields": {"key": "check_master_mode", "value": "ip_addr"}
 	}
 ]

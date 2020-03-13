@@ -1,6 +1,8 @@
 """ module de traitements des cdp """
 import threading
+import subprocess
 import requests
+from django.conf import settings
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 
@@ -27,55 +29,80 @@ def reception_cdp(dp):
 def am_i_master():
     """
         vérification master (solution 1)
-        - solution 1: vérifie si local nginx uuid = virtual nginx uuid
-        - solution 2: vérifie si la commande 'ip addr' retourne 
+        - solution 1 (uuid): vérifie si local nginx uuid = virtual nginx uuid
+        - solution 2 (ip_addr): vérifie si la commande 'ip addr' retourne
             l'adresse ip virtuelle en tant que 'scope global secondary ethX'
     """
     logger = get_logger("am_i_master")
 
+    # ip/port virtual
+    ip_addr = param.System.get_value('virtual_ip_middle')
+    port = param.System.get_value('virtual_port_middle')
+
+    # solution choice (from paramters)
+    choice = param.System.get_value('check_master_mode')
+
     try:
-        
-        local_uuid_file = "default_uuid_local_file"
-        local_uuid_http = "default_uuid_local_http"
-        virtual_uuid = "default_uuid_remote"
 
-        # Get local uuid from file /home/mfserv/var/uuid
-        mfserv_local_path = param.get_value('app', 'mfserv_local_path')
-        uuid_file_path = mfserv_local_path + '/var/uuid'
-        with open(uuid_file_path, "r") as uuid_file:
-            local_uuid_file = uuid_file.read().strip()
-        logger.debug("local uuid file : " + local_uuid_file)
+        # 1. Solution uuid
+        if choice == 'uuid':
 
-        # Get local uuid from http (ensure local server is OK)
-        mfserv_local_port = param.get_value('app', 'mfserv_local_port')
-        url = "http://localhost:{}/uuid".format(mfserv_local_port)
-        resp = requests.get(url, timeout=10)
-        local_uuid_http = resp.content.strip().decode()
-        logger.debug("local uuid http : " + local_uuid_http)
-        assert local_uuid_file == local_uuid_http, 'local server seems down'
-        
-        # Get uuid from virtual (proxy)
-        ip = param.get_value('app', 'virtual_ip_middle')
-        port = param.get_value('app', 'virtual_port_middle')
-        url = "http://{}:{}/uuid".format(ip, port)
-        response = requests.get(url, timeout=10)
-        if response.status_code == 200:
-            virtual_uuid = response.content.strip().decode()
-            logger.debug("remote uuid : " + virtual_uuid)
-        else:
-            logger.warning("impossible de joindre l'adresse virtuelle")
-        
-        # check if local uuid = remote uuid
-        if virtual_uuid == local_uuid_http:
-            logger.info("i am the master")
-            return True
+            local_uuid_file = "default_uuid_local_file"
+            local_uuid_http = "default_uuid_local_http"
+            virtual_uuid = "default_uuid_remote"
 
+            # Get local uuid from file /home/mfserv/var/uuid
+            mfserv_local_path = param.System.get_value('mfserv_local_path')
+            uuid_file_path = mfserv_local_path + '/var/uuid'
+            with open(uuid_file_path, "r") as uuid_file:
+                local_uuid_file = uuid_file.read().strip()
+            logger.debug("local uuid file : " + local_uuid_file)
+
+            # Get local uuid from http (ensure local server is OK)
+            mfserv_local_port = param.System.get_value('mfserv_local_port')
+            url = "http://localhost:{}/uuid".format(mfserv_local_port)
+            resp = requests.get(url, timeout=10)
+            local_uuid_http = resp.content.strip().decode()
+            logger.debug("local uuid http : " + local_uuid_http)
+            assert local_uuid_file == local_uuid_http, 'local server seems down'
+
+            # Get uuid from virtual (proxy)
+            url = "http://{}:{}/uuid".format(ip_addr, port)
+            response = requests.get(url, timeout=10)
+            if response.status_code == 200:
+                virtual_uuid = response.content.strip().decode()
+                logger.debug("remote uuid : " + virtual_uuid)
+            else:
+                logger.warning("impossible de joindre l'adresse virtuelle")
+
+            # If local uuid = remote uuid, return True
+            if virtual_uuid == local_uuid_http:
+                logger.info("i am the master")
+                return True
+
+        # 2. Solution ip addr
+        elif choice == 'ip_addr':
+
+            command = ('/sbin/ip addr show dev {0} | grep "inet {1}" 2>/dev/null | wc -l'
+                       .format(settings.NETWORK_INTERFACE, ip_addr))
+            logger.debug(f"command : {command}")
+
+            # Execute command
+            ip_addr_return = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
+
+            # If virtual ip is found, return True
+            if int(ip_addr_return) == 1:
+                logger.info("i am the master")
+                return True
+
+        # Default, slave
         logger.warning("i am the slave")
 
-    except Exception as e:
-        logger.error(e, exc_info=True)
+    except Exception as exc:
+        logger.error(exc, exc_info=True)
         return False
 
+    # Default, slave
     return False
 
 class TraitementsCdp(threading.Thread):
