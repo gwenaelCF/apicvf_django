@@ -11,8 +11,9 @@ from procedere import models
 import produit.models
 from helpers.timing import what_time_is_it
 
+
 class Command(BaseCommand):
-    help='''
+    help = '''
     commande pour injecter les données fixes sur une base
     | force une ou plusieurs options parmi :
       * regles - produits - grains - etats - tout *
@@ -20,17 +21,16 @@ class Command(BaseCommand):
     '''
     requires_migrates_checks = True
 
-
-
     def add_arguments(self, parser):
         parser.add_argument('todo', nargs='+', type=str)
-        parser.add_argument('-d', type=str, default="", help="Répertoire dans lequel trouver les fichiers d'entrée relativement au manage.py.")
+        parser.add_argument('-d', type=str, default="",
+                            help="Répertoire dans lequel trouver les fichiers d'entrée relativement au manage.py.")
 
     @staticmethod
     def insert_regles(data):
         qs = produit.models.Regle.objects.all().values_list('name', flat=True)
-        for regle in serializers.deserialize('json',data):
-            if regle.object.name not in qs :
+        for regle in serializers.deserialize('json', data):
+            if regle.object.name not in qs:
                 regle.save()
 
     @staticmethod
@@ -41,9 +41,9 @@ class Command(BaseCommand):
             new_prod = produit.models.Produit(shortname=prod, entete=entete, name=name, timezone=tz)
             reg = 'apic' if new_prod.name[0]=='A' else 'vf'
             new_prod.regle = produit.models.Regle.objects.get(name=reg)
-            try :
+            try:
                 new_prod.save()
-            except :
+            except Exception as e:
                 pass
 
     @staticmethod
@@ -52,7 +52,7 @@ class Command(BaseCommand):
         for d in dicteur:
             reg = models.granularite.Region(insee=d['reg'])
             for l in ['cheflieu', 'tncc', 'ncc', 'nccenr', 'libelle']:
-                setattr(reg,l,d[l])
+                setattr(reg, l, d[l])
             if int(reg.insee)<=9:
                 reg.metrop=False
             liste_reg.append(reg)
@@ -125,27 +125,26 @@ class Command(BaseCommand):
                             dico_etat['dep'], batch_size=1000, ignore_conflicts=True)
         models.etat.EtatGrainProduit.objects.bulk_create(
                             dico_etat['grain'], batch_size=5000, ignore_conflicts=True)
-    
+
     @staticmethod
     def insert_params(data_param):
         '''
         Insert parameters in database, taken in params.json
         Value is updated if key already exist
         '''
-        for param in serializers.deserialize('json',data_param):
+        for param in serializers.deserialize('json', data_param):
             parameters.models.Application.objects.update_or_create(
                 key=param.object.key, defaults={'value': param.object.value}
             )
 
-
     def handle(self, *args, **options):
         print(f'début insertion des données ({what_time_is_it()})')
-        allowed = ['regles','produits', 'grains' ,'etats', 'params', 'tout']
+        allowed = ['regles', 'produits', 'grains', 'etats', 'params', 'tout']
 
         todo = options['todo']
         for td in options['todo']:
-            if td not in allowed :
-                raise CommandError('option "{}" not allowed (should be in {})'.format(td,allowed))
+            if td not in allowed:
+                raise CommandError('option "{}" not allowed (should be in {})'.format(td, allowed))
         regles = 'regles' in todo
         produits = 'produits' in todo
         grains = 'grains' in todo
@@ -158,20 +157,20 @@ class Command(BaseCommand):
         filepath = os.path.join(path_procedere, 'data')
         if options['d']:
             filepath = os.path.join(path_procedere, options['d'])
-        fileregle = os.path.join(filepath,'regles.json')
-        fileparam = os.path.join(filepath,'params.json')
-        filereg = os.path.join(filepath,'region2019.csv')
-        filedept = os.path.join(filepath,'departement2019.csv')
-        filecom = os.path.join(filepath,'communes_all.csv')
-        fileorigin = os.path.join(filepath,'communes_origin.csv')
+        fileregle = os.path.join(filepath, 'regles.json')
+        fileparam = os.path.join(filepath, 'params.json')
+        filereg = os.path.join(filepath, 'region2019.csv')
+        filedept = os.path.join(filepath, 'departement2019.csv')
+        filecom = os.path.join(filepath, 'communes_all.csv')
+        fileorigin = os.path.join(filepath, 'communes_origin.csv')
 
         t_start = time.time()
         if tout or regles:
             self.stdout.write(self.style.NOTICE('insertion regles'))
-            data = open(fileregle,'r')
+            data = open(fileregle, 'r')
             self.insert_regles(data)
         if tout or produits:
-            data = open(fileregle,'r')
+            data = open(fileregle, 'r')
             self.insert_regles(data)
             self.stdout.write(self.style.NOTICE('insertion produits'))
             self.insert_produits()
@@ -223,8 +222,3 @@ class Command(BaseCommand):
         t_fin = time.time()
         self.stdout.write(self.style.NOTICE(f'total secondes {t_fin-t_start}'))
         print(f'fin méthode ({what_time_is_it()})')
-
-        
-
-
-
