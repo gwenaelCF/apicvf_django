@@ -10,7 +10,8 @@ from parameters import models as param
 from io import BytesIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
-from procedere.models import produit, granularite, etat
+from procedere.models import granularite, etat
+
 
 
 class GestionCdp(GestionDossier):

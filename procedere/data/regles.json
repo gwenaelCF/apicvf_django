@@ -1,6 +1,6 @@
 [
 	{
-		"model": "procedere.regle", 
+		"model": "produit.regle", 
 		"pk": null, 
 		"fields": {
 					"name": "apic", 
@@ -9,7 +9,7 @@
 					}
 	},
 	{
-	 	"model": "procedere.regle", 
+	 	"model": "produit.regle", 
 	 	"pk": null, 
 	 	"fields": {
 	 				"name": "vf",

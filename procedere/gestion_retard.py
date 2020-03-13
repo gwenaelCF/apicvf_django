@@ -4,7 +4,8 @@ import io
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from mflog import get_logger
 
-from procedere.models import produit, granularite, etat
+from procedere.models import granularite, etat
+import produit.models as produit
 from procedere.utils import GestionCdp, create_cdp
 from procedere.reception_cdp import reception_cdp
 from parameters import models as param

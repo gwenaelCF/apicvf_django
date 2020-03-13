@@ -20,5 +20,5 @@ class Timer(object):
             self.interval = time.time() - self.start_time  
             del self.start_time
 
-def whatTimeIsIt():
+def what_time_is_it():
     return time.strftime("%d %b %Y %H:%M:%S", time.localtime())
